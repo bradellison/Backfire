@@ -34,7 +34,8 @@ public class GameManager : MonoBehaviour
                 levelManager.IncreaseLevel();
             }
         }
-
+        if(Input.GetKeyDown(KeyCode.Escape))
+            Application.Quit();
     }
 
     void StartGame() {
