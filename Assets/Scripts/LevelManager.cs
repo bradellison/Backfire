@@ -17,16 +17,20 @@ public class LevelManager : MonoBehaviour
         level = 1;
     }
 
-    public void IncreaseLevel() {
+    public bool IncreaseLevel() {
         if(level < maxLevel) {
             level += 1;
+            return true;
         }
+        return false;
     }
 
-    public void DecreaseLevel() {
+    public bool DecreaseLevel() {
         if(level > minLevel) {
             level -= 1;
+            return true;
         }
+        return false;
     }
     // Update is called once per frame
     void Update()

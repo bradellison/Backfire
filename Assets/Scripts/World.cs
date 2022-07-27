@@ -4,10 +4,13 @@ using UnityEngine;
 
 public class World : MonoBehaviour
 {
-    // Start is called before the first frame update
+
+    //public Gradient[] colorings;
+    public GameObject worldDestoryParticles;
+
     void Start()
     {
-        
+        //this.gameObject.GetComponent<MapGenerator>().coloring = colorings[0];
     }
 
     // Update is called once per frame
@@ -21,5 +24,10 @@ public class World : MonoBehaviour
         if (other.gameObject.tag == "Bullet") {
             Physics2D.IgnoreCollision(other.gameObject.GetComponent<Collider2D>(), this.gameObject.GetComponent<Collider2D>());
         }
+    }
+
+    void OnDestroy() {
+        GameObject particles = Instantiate(worldDestoryParticles);
+        particles.transform.position = this.transform.position;
     }
 }

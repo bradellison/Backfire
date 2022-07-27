@@ -10,6 +10,7 @@ public class GameManager : MonoBehaviour
     ScoreManager scoreManager;
     CanvasManager canvasManager;
     LevelManager levelManager;
+    OuterSpace outerSpace;
     //AudioManager audioManager;
 
     void Start()
@@ -19,19 +20,24 @@ public class GameManager : MonoBehaviour
         scoreManager =  GameObject.FindGameObjectWithTag("ScoreManager").GetComponent<ScoreManager>();
         canvasManager =  GameObject.FindGameObjectWithTag("CanvasManager").GetComponent<CanvasManager>();
         levelManager = GameObject.FindGameObjectWithTag("LevelManager").GetComponent<LevelManager>();
+        outerSpace = GameObject.FindGameObjectWithTag("OuterSpace").GetComponent<OuterSpace>();
     }
 
     // Update is called once per frame
     void Update()
     {
         if(!isGameRunning) {
-            if(Input.GetKeyDown(KeyCode.Return)) {
+            if(Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.Space)) {
                 StartGame();
                 isGameRunning = true;
             } else if (Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.A)) {
-                levelManager.DecreaseLevel();
+                if(levelManager.DecreaseLevel()) {
+                    outerSpace.ChangeBackground(levelManager.level);
+                }
             } else if (Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.D)) {
-                levelManager.IncreaseLevel();
+                if(levelManager.IncreaseLevel()) {
+                    outerSpace.ChangeBackground(levelManager.level);
+                }
             }
         }
         if(Input.GetKeyDown(KeyCode.Escape))

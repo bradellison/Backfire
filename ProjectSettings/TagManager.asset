@@ -13,6 +13,8 @@ TagManager:
   - SFXManager
   - LevelManager
   - World
+  - OuterSpace
+  - Forcefield
   layers:
   - Default
   - TransparentFX

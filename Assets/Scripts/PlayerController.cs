@@ -28,6 +28,19 @@ public class PlayerController : MonoBehaviour
     public Sprite leftSprite;
     public Sprite downSprite;
 
+    public GameObject forcefieldPrefab;
+    GameObject forcefield;
+    public bool isForcefieldActive;
+    public float forcefieldCounter;
+    public float forcefieldTarget;
+    public float forcefieldFalloff;
+    public float forcefieldActiveFalloffMultiplier;
+
+    public float forcefieldBulletHitCounterDecrease;
+
+    public float speedBoostMultiplier;
+    public bool isSpeedBoostActive;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -144,7 +157,56 @@ public class PlayerController : MonoBehaviour
             this.GetComponent<SpriteRenderer>().sprite = rightSprite;
             movementVector = Vector3.right;
         } 
-        transform.Translate(movementVector * moveSpeed * Time.deltaTime);
+        
+        if(Input.GetKeyDown(KeyCode.Space) && !isSpeedBoostActive) {
+            isSpeedBoostActive = true;
+        } else if(Input.GetKeyUp(KeyCode.Space) && isSpeedBoostActive) {
+            isSpeedBoostActive = false;
+        }
+
+        float boostMultiplier = 1f; 
+        if(isSpeedBoostActive) {
+            boostMultiplier = speedBoostMultiplier;
+        }
+        transform.Translate(movementVector * moveSpeed * boostMultiplier * Time.deltaTime);
+    }
+
+    void IncrementForceFieldCounter() {
+        if(!isForcefieldActive) {
+            forcefieldCounter += 1;
+            if (forcefieldCounter > forcefieldTarget) {
+                forcefieldCounter = forcefieldTarget;
+            }
+            if (forcefieldCounter == forcefieldTarget) {
+                isForcefieldActive = true;
+                CreateForceField();
+            }
+        }
+    }
+
+    void CreateForceField() {
+        forcefield = Instantiate(forcefieldPrefab);
+        forcefield.transform.position = this.transform.position;
+        forcefield.transform.parent = transform;
+        forcefield.GetComponent<Forcefield>().forcefieldBulletHitCounterDecrease = forcefieldBulletHitCounterDecrease;
+    }
+
+    public void DecreaseForceFieldCounter(float amount) {
+        if(isForcefieldActive) {
+            amount *= forcefieldActiveFalloffMultiplier;
+        }
+        forcefieldCounter -= amount;
+        if(forcefieldCounter < 0) {
+            forcefieldCounter = 0;
+            if(isForcefieldActive) {
+                isForcefieldActive = false;
+                Destroy(forcefield);
+            }
+        }
+    }
+
+    void ForcefieldUpdates() {
+        DecreaseForceFieldCounter(forcefieldFalloff);
     }
 
     // Update is called once per frame
@@ -152,6 +214,7 @@ public class PlayerController : MonoBehaviour
     {
         UpdatePlayerCounts();
         CheckScreenEdgesWithSinglePlayer();
+        ForcefieldUpdates();
 
         MovePlayer();
 
@@ -162,15 +225,20 @@ public class PlayerController : MonoBehaviour
         if(other.gameObject.tag == "World") {
             HitWorld(other.gameObject);
         } else if (other.gameObject.tag == "Bullet") {
-            sfxManager.HitPlayer();
-            GameOver();
+            if(!isForcefieldActive) {
+                sfxManager.HitPlayer();
+                GameOver();
+            }
         }
     }
 
-    void HitWorld(GameObject world) {
+    public void HitWorld(GameObject world) {
         scoreManager.HitWorld();
         spawnManager.SpawnBullet(transform.position, movementVector);
         spawnManager.SpawnWorld();
+        if(!isForcefieldActive) {
+            IncrementForceFieldCounter();
+        }
         sfxManager.HitWorld();
         Destroy(world);
     }
