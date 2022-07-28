@@ -223,7 +223,7 @@ public class PlayerController : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D other) {
         if(other.gameObject.tag == "World") {
-            HitWorld(other.gameObject);
+            HitWorld(other.gameObject, false);
         } else if (other.gameObject.tag == "Bullet") {
             if(!isForcefieldActive) {
                 sfxManager.HitPlayer();
@@ -232,10 +232,15 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    public void HitWorld(GameObject world) {
+    public void HitWorld(GameObject world, bool hitByForcefield) {
         scoreManager.HitWorld();
         spawnManager.SpawnBullet(transform.position, movementVector);
-        spawnManager.SpawnWorld();
+        
+        //Below is to stop multiple worlds spawning if forcefield and player collide with world
+        if(!isForcefieldActive || (isForcefieldActive && hitByForcefield)) {
+            spawnManager.SpawnWorld();
+        }
+        
         if(!isForcefieldActive) {
             IncrementForceFieldCounter();
         }

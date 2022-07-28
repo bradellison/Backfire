@@ -22,7 +22,7 @@ public class Forcefield : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D other) {
         if(other.gameObject.tag == "World") {
-            player.HitWorld(other.gameObject);
+            player.HitWorld(other.gameObject, true);
         } else if (other.gameObject.tag == "Bullet") {
             HitBullet(other.gameObject);
         }
