@@ -40,6 +40,10 @@ public class OuterSpace : MonoBehaviour
     }
 
     public void ChangeBackground(int level) {
+        if(level> noiseScales.Length) {
+            level = 2;
+        }
+        
         mapGenerator.noiseScale = noiseScales[level - 1];
         mapGenerator.octaves = octaves[level - 1];
         mapGenerator.persistance = persistance[level - 1];
