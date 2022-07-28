@@ -7,6 +7,7 @@ public class World : MonoBehaviour
 
     //public Gradient[] colorings;
     public GameObject worldDestoryParticles;
+    bool isQuitting;
 
     void Start()
     {
@@ -19,6 +20,10 @@ public class World : MonoBehaviour
         
     }
 
+    void OnApplicationQuit() {
+        isQuitting = true;
+    }
+
     void OnCollisionEnter2D(Collision2D other) 
     {
         if (other.gameObject.tag == "Bullet") {
@@ -27,7 +32,9 @@ public class World : MonoBehaviour
     }
 
     void OnDestroy() {
-        GameObject particles = Instantiate(worldDestoryParticles);
-        particles.transform.position = this.transform.position;
+        if(!isQuitting) {
+            GameObject particles = Instantiate(worldDestoryParticles);
+            particles.transform.position = this.transform.position;
+        }
     }
 }

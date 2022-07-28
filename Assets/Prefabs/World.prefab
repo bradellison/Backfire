@@ -180,7 +180,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f04e6b58789945da90286134ed10fc9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  worldDestoryParticles: {fileID: 4457966855945872948, guid: 7ef4275f5dc634b1c8fd37d56b8b909c, type: 3}
+  worldDestoryParticles: {fileID: 5181746770209003263, guid: 5eb98930519ef44ff9c486dad9244429, type: 3}
 --- !u!1 &7232397992237234912
 GameObject:
   m_ObjectHideFlags: 0

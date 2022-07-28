@@ -113,7 +113,7 @@ MonoBehaviour:
   isForcefieldActive: 0
   forcefieldCounter: 0
   forcefieldTarget: 5
-  forcefieldFalloff: 0.007
+  forcefieldFalloff: 0.008
   forcefieldActiveFalloffMultiplier: 1.5
   forcefieldBulletHitCounterDecrease: 0.5
   speedBoostMultiplier: 2
