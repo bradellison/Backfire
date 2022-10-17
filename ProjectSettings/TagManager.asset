@@ -3,7 +3,19 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - GameManager
+  - ScoreManager
+  - LevelManager
+  - CanvasManager
+  - SpawnManager
+  - OuterSpace
+  - World
+  - Bullet
+  - Forcefield
+  - SettingsManager
+  - MusicManager
+  - SfxManager
   layers:
   - Default
   - TransparentFX

@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class SaveData : MonoBehaviour
@@ -7,15 +5,15 @@ public class SaveData : MonoBehaviour
 
     public int[] highScores = new int[5];
 
-	int intToSave;
-	float floatToSave;
-	string stringToSave;
+    private int _intToSave;
+    private float _floatToSave;
+    private string _stringToSave;
 
-    void SaveGame()
+    private void SaveGame()
     {
-    	PlayerPrefs.SetInt("SavedInteger", intToSave);
-    	PlayerPrefs.SetFloat("SavedFloat", floatToSave);
-    	PlayerPrefs.SetString("SavedString", stringToSave);
+    	PlayerPrefs.SetInt("SavedInteger", _intToSave);
+    	PlayerPrefs.SetFloat("SavedFloat", _floatToSave);
+    	PlayerPrefs.SetString("SavedString", _stringToSave);
     	PlayerPrefs.Save();
     	Debug.Log("Game data saved!");
     }

@@ -1,6 +1,8 @@
 using UnityEngine;
-using System.Collections;
 
+/// <summary>
+/// this is not used in backfire code, but helpful for understanding noise
+/// </summary>
 
 public delegate float NoiseMethod (Vector3 point, float frequency);
 
@@ -12,30 +14,30 @@ public enum NoiseMethodType {
 
 public static class NoiseHash {
 
-	public static NoiseMethod[] valueMethods = {
+	public static NoiseMethod[] ValueMethods = {
 		Value1D,
 		Value2D,
 		Value3D
 	};
 
-	public static NoiseMethod[] perlinMethods = {
+	public static NoiseMethod[] PerlinMethods = {
 		Perlin1D,
 		Perlin2D,
 		Perlin3D,
 	};
 
-    public static NoiseMethod[] unityPerlinMethods = {
+    public static NoiseMethod[] UnityPerlinMethods = {
         UnityPerlin1D,
         UnityPerlin2D
     };
 
-	public static NoiseMethod[][] noiseMethods = {
-		valueMethods,
-		perlinMethods,
-        unityPerlinMethods
+	public static NoiseMethod[][] NoiseMethods = {
+		ValueMethods,
+		PerlinMethods,
+        UnityPerlinMethods
 	};
 
-	private static int[] hash = {
+	private static int[] _hash = {
 		151,160,137, 91, 90, 15,131, 13,201, 95, 96, 53,194,233,  7,225,
 		140, 36,103, 30, 69,142,  8, 99, 37,240, 21, 10, 23,190,  6,148,
 		247,120,234, 75,  0, 26,197, 62, 94,252,219,203,117, 35, 11, 32,
@@ -71,7 +73,7 @@ public static class NoiseHash {
 		222,114, 67, 29, 24, 72,243,141,128,195, 78, 66,215, 61,156,180
 	};
 
-	private const int hashMask = 255;
+	private const int HashMask = 255;
 
 	private static float Smooth (float t) {
 		return t * t * t * (t * (t * 6f - 15f) + 10f);
@@ -81,14 +83,14 @@ public static class NoiseHash {
 		point *= frequency;
 		int i0 = Mathf.FloorToInt(point.x);
 		float t = point.x - i0;
-		i0 &= hashMask;
+		i0 &= HashMask;
 		int i1 = i0 + 1;
 
-		int h0 = hash[i0];
-		int h1 = hash[i1];
+		int h0 = _hash[i0];
+		int h1 = _hash[i1];
 
         t = Smooth(t);
-		return Mathf.Lerp(h0, h1, t) * (1f / hashMask);
+		return Mathf.Lerp(h0, h1, t) * (1f / HashMask);
 	}
 
 	public static float Value2D (Vector3 point, float frequency) {
@@ -97,24 +99,24 @@ public static class NoiseHash {
 		int iy0 = Mathf.FloorToInt(point.y);
 		float tx = point.x - ix0;
 		float ty = point.y - iy0;        
-		ix0 &= hashMask;
-		iy0 &= hashMask;
+		ix0 &= HashMask;
+		iy0 &= HashMask;
 		int ix1 = ix0 + 1;
 		int iy1 = iy0 + 1;
 
-		int h0 = hash[ix0];
-		int h1 = hash[ix1];
-		int h00 = hash[h0 + iy0];
-		int h10 = hash[h1 + iy0];
-		int h01 = hash[h0 + iy1];
-		int h11 = hash[h1 + iy1];
+		int h0 = _hash[ix0];
+		int h1 = _hash[ix1];
+		int h00 = _hash[h0 + iy0];
+		int h10 = _hash[h1 + iy0];
+		int h01 = _hash[h0 + iy1];
+		int h11 = _hash[h1 + iy1];
 
 		tx = Smooth(tx);
 		ty = Smooth(ty);
 		return Mathf.Lerp(
 			Mathf.Lerp(h00, h10, tx),
 			Mathf.Lerp(h01, h11, tx),
-			ty) * (1f / hashMask);	
+			ty) * (1f / HashMask);	
     }
 
 	public static float Value3D (Vector3 point, float frequency) {
@@ -125,27 +127,27 @@ public static class NoiseHash {
 		float tx = point.x - ix0;
 		float ty = point.y - iy0;
 		float tz = point.z - iz0;
-		ix0 &= hashMask;
-		iy0 &= hashMask;
-		iz0 &= hashMask;
+		ix0 &= HashMask;
+		iy0 &= HashMask;
+		iz0 &= HashMask;
 		int ix1 = ix0 + 1;
 		int iy1 = iy0 + 1;
 		int iz1 = iz0 + 1;
 
-		int h0 = hash[ix0];
-		int h1 = hash[ix1];
-		int h00 = hash[h0 + iy0];
-		int h10 = hash[h1 + iy0];
-		int h01 = hash[h0 + iy1];
-		int h11 = hash[h1 + iy1];
-		int h000 = hash[h00 + iz0];
-		int h100 = hash[h10 + iz0];
-		int h010 = hash[h01 + iz0];
-		int h110 = hash[h11 + iz0];
-		int h001 = hash[h00 + iz1];
-		int h101 = hash[h10 + iz1];
-		int h011 = hash[h01 + iz1];
-		int h111 = hash[h11 + iz1];
+		int h0 = _hash[ix0];
+		int h1 = _hash[ix1];
+		int h00 = _hash[h0 + iy0];
+		int h10 = _hash[h1 + iy0];
+		int h01 = _hash[h0 + iy1];
+		int h11 = _hash[h1 + iy1];
+		int h000 = _hash[h00 + iz0];
+		int h100 = _hash[h10 + iz0];
+		int h010 = _hash[h01 + iz0];
+		int h110 = _hash[h11 + iz0];
+		int h001 = _hash[h00 + iz1];
+		int h101 = _hash[h10 + iz1];
+		int h011 = _hash[h01 + iz1];
+		int h111 = _hash[h11 + iz1];
 
 		tx = Smooth(tx);
 		ty = Smooth(ty);
@@ -153,25 +155,25 @@ public static class NoiseHash {
 		return Mathf.Lerp(
 			Mathf.Lerp(Mathf.Lerp(h000, h100, tx), Mathf.Lerp(h010, h110, tx), ty),
 			Mathf.Lerp(Mathf.Lerp(h001, h101, tx), Mathf.Lerp(h011, h111, tx), ty),
-			tz) * (1f / hashMask);
+			tz) * (1f / HashMask);
 	}
 
-	private static float[] gradients1D = {
+	private static float[] _gradients1D = {
 		1f, -1f
 	};
 
-	private const int gradientsMask1D = 1;
+	private const int GradientsMask1D = 1;
 
 	public static float Perlin1D (Vector3 point, float frequency) {
 		point *= frequency;
 		int i0 = Mathf.FloorToInt(point.x);
 		float t0 = point.x - i0;
 		float t1 = t0 - 1f;
-		i0 &= hashMask;
+		i0 &= HashMask;
 		int i1 = i0 + 1;
 		
-		float g0 = gradients1D[hash[i0] & gradientsMask1D];
-		float g1 = gradients1D[hash[i1] & gradientsMask1D];
+		float g0 = _gradients1D[_hash[i0] & GradientsMask1D];
+		float g1 = _gradients1D[_hash[i1] & GradientsMask1D];
 
 		float v0 = g0 * t0;
 		float v1 = g1 * t1;
@@ -180,7 +182,7 @@ public static class NoiseHash {
 		return Mathf.Lerp(v0, v1, t) * 20f;
 	}
 
-	private static Vector2[] gradients2D = {
+	private static Vector2[] _gradients2D = {
 		new Vector2( 1f, 0f),
 		new Vector2(-1f, 0f),
 		new Vector2( 0f, 1f),
@@ -191,13 +193,13 @@ public static class NoiseHash {
 		new Vector2(-1f,-1f).normalized
 	};
 	
-	private const int gradientsMask2D = 7;
+	private const int GradientsMask2D = 7;
 
 	private static float Dot (Vector2 g, float x, float y) {
 		return g.x * x + g.y * y;
 	}
 
-	private static float sqr2 = Mathf.Sqrt(2f);
+	private static float _sqr2 = Mathf.Sqrt(2f);
 
 	public static float Perlin2D (Vector3 point, float frequency) {
 		point *= frequency;
@@ -207,17 +209,17 @@ public static class NoiseHash {
 		float ty0 = point.y - iy0;
 		float tx1 = tx0 - 1f;
 		float ty1 = ty0 - 1f;
-		ix0 &= hashMask;
-		iy0 &= hashMask;
+		ix0 &= HashMask;
+		iy0 &= HashMask;
 		int ix1 = ix0 + 1;
 		int iy1 = iy0 + 1;
 		
-		int h0 = hash[ix0];
-		int h1 = hash[ix1];
-		Vector2 g00 = gradients2D[hash[h0 + iy0] & gradientsMask2D];
-		Vector2 g10 = gradients2D[hash[h1 + iy0] & gradientsMask2D];
-		Vector2 g01 = gradients2D[hash[h0 + iy1] & gradientsMask2D];
-		Vector2 g11 = gradients2D[hash[h1 + iy1] & gradientsMask2D];
+		int h0 = _hash[ix0];
+		int h1 = _hash[ix1];
+		Vector2 g00 = _gradients2D[_hash[h0 + iy0] & GradientsMask2D];
+		Vector2 g10 = _gradients2D[_hash[h1 + iy0] & GradientsMask2D];
+		Vector2 g01 = _gradients2D[_hash[h0 + iy1] & GradientsMask2D];
+		Vector2 g11 = _gradients2D[_hash[h1 + iy1] & GradientsMask2D];
 
 		float v00 = Dot(g00, tx0, ty0);
 		float v10 = Dot(g10, tx1, ty0);
@@ -229,10 +231,10 @@ public static class NoiseHash {
 		return Mathf.Lerp(
 			Mathf.Lerp(v00, v10, tx),
 			Mathf.Lerp(v01, v11, tx),
-			ty) * sqr2;
+			ty) * _sqr2;
 	}
 
-	private static Vector3[] gradients3D = {
+	private static Vector3[] _gradients3D = {
 		new Vector3( 1f, 1f, 0f),
 		new Vector3(-1f, 1f, 0f),
 		new Vector3( 1f,-1f, 0f),
@@ -252,7 +254,7 @@ public static class NoiseHash {
 		new Vector3( 0f,-1f,-1f)
 	};
 	
-	private const int gradientsMask3D = 15;
+	private const int GradientsMask3D = 15;
 
 	private static float Dot (Vector3 g, float x, float y, float z) {
 		return g.x * x + g.y * y + g.z * z;
@@ -269,27 +271,27 @@ public static class NoiseHash {
 		float tx1 = tx0 - 1f;
 		float ty1 = ty0 - 1f;
 		float tz1 = tz0 - 1f;
-		ix0 &= hashMask;
-		iy0 &= hashMask;
-		iz0 &= hashMask;
+		ix0 &= HashMask;
+		iy0 &= HashMask;
+		iz0 &= HashMask;
 		int ix1 = ix0 + 1;
 		int iy1 = iy0 + 1;
 		int iz1 = iz0 + 1;
 		
-		int h0 = hash[ix0];
-		int h1 = hash[ix1];
-		int h00 = hash[h0 + iy0];
-		int h10 = hash[h1 + iy0];
-		int h01 = hash[h0 + iy1];
-		int h11 = hash[h1 + iy1];
-		Vector3 g000 = gradients3D[hash[h00 + iz0] & gradientsMask3D];
-		Vector3 g100 = gradients3D[hash[h10 + iz0] & gradientsMask3D];
-		Vector3 g010 = gradients3D[hash[h01 + iz0] & gradientsMask3D];
-		Vector3 g110 = gradients3D[hash[h11 + iz0] & gradientsMask3D];
-		Vector3 g001 = gradients3D[hash[h00 + iz1] & gradientsMask3D];
-		Vector3 g101 = gradients3D[hash[h10 + iz1] & gradientsMask3D];
-		Vector3 g011 = gradients3D[hash[h01 + iz1] & gradientsMask3D];
-		Vector3 g111 = gradients3D[hash[h11 + iz1] & gradientsMask3D];
+		int h0 = _hash[ix0];
+		int h1 = _hash[ix1];
+		int h00 = _hash[h0 + iy0];
+		int h10 = _hash[h1 + iy0];
+		int h01 = _hash[h0 + iy1];
+		int h11 = _hash[h1 + iy1];
+		Vector3 g000 = _gradients3D[_hash[h00 + iz0] & GradientsMask3D];
+		Vector3 g100 = _gradients3D[_hash[h10 + iz0] & GradientsMask3D];
+		Vector3 g010 = _gradients3D[_hash[h01 + iz0] & GradientsMask3D];
+		Vector3 g110 = _gradients3D[_hash[h11 + iz0] & GradientsMask3D];
+		Vector3 g001 = _gradients3D[_hash[h00 + iz1] & GradientsMask3D];
+		Vector3 g101 = _gradients3D[_hash[h10 + iz1] & GradientsMask3D];
+		Vector3 g011 = _gradients3D[_hash[h01 + iz1] & GradientsMask3D];
+		Vector3 g111 = _gradients3D[_hash[h11 + iz1] & GradientsMask3D];
 
 		float v000 = Dot(g000, tx0, ty0, tz0);
 		float v100 = Dot(g100, tx1, ty0, tz0);

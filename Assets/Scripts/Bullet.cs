@@ -1,6 +1,8 @@
+using System;
 using System.Collections;
-using System.Collections.Generic;
+using ScriptableObjects;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class Bullet : MonoBehaviour
 {
@@ -9,69 +11,151 @@ public class Bullet : MonoBehaviour
 
     [Header("Script Managed Variables")]
     public Vector3 movementVector;
+    public Vector3 startingMovementDirection ;
     public Vector2 camWorldSize;
 
-    Vector2 spriteSize = new Vector2(); 
 
-    TrailRenderer trailRenderer;
+    private GameObject _player;
+    private Collider2D _playerCollider;
+    private Collider2D _collider;
+    private Transform _transform;
+    
+    private Vector3 _previousLocation;
+    private Vector2 _spriteSize;
 
-    void Start()
+    private TrailRenderer _trailRenderer;
+    private bool _hitEdge;
+
+    private bool _collisionsEnabled;
+
+    public float elapsedTime;
+    public float frequency;
+    public float angularFrequency;
+    public float period;
+    public float amplitude;
+    public float phase;
+
+    [SerializeField] private OnBulletHitScriptableObject onBulletHitScriptableObject;
+
+    private void Awake()
     {
-        Physics2D.IgnoreCollision(GameObject.FindGameObjectWithTag("Player").GetComponent<Collider2D>(), this.gameObject.GetComponent<Collider2D>());
-        spriteSize.x = this.gameObject.GetComponent<SpriteRenderer>().bounds.size.x;
-        spriteSize.y = this.gameObject.GetComponent<SpriteRenderer>().bounds.size.y;
+        _transform = transform;
+        _collider = this.gameObject.GetComponent<Collider2D>();
+    }
+    
+    private void Start()
+    {
+        _player = GameObject.FindGameObjectWithTag("Player");
+        _playerCollider = _player.GetComponent<Collider2D>();
+        Physics2D.IgnoreCollision(_playerCollider, _collider);
+        _spriteSize = this.gameObject.GetComponent<SpriteRenderer>().bounds.size;
 
-        StartCoroutine(EnableCollisions());
+        //Enable collisions after 0.1 seconds to avoid instant death
+        StartCoroutine(EnableCollisions(0.1f));
 
-        trailRenderer = this.gameObject.transform.GetChild(0).GetComponent<TrailRenderer>();
+        _trailRenderer = this.gameObject.transform.GetChild(0).GetComponent<TrailRenderer>();
+        _hitEdge = false;
+        _collisionsEnabled = false;
+
+        period = 5f;    }
+
+    private IEnumerator EnableCollisions(float waitSeconds)
+    {
+        yield return new WaitForSeconds(waitSeconds);
+        _collisionsEnabled = true;
+        if (_player) { Physics2D.IgnoreCollision(_playerCollider, _collider, false); }         
     }
 
-    IEnumerator EnableCollisions()
+    private void CheckCollisionBetweenFrames()
     {
-        yield return new WaitForSeconds(0.1f);
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
-        if (player != null) {
-            Physics2D.IgnoreCollision(player.GetComponent<Collider2D>(), this.gameObject.GetComponent<Collider2D>(), false);
+        // Return if hit edge this frame
+        if (_hitEdge)
+        {
+            _hitEdge = false;
+            return;
+        }
+
+        Vector3 position = _transform.position;
+        Vector3 changeVector = _previousLocation - position;
+        float distance = Mathf.Abs(changeVector.x) + Mathf.Abs(changeVector.y) + Mathf.Abs(changeVector.z);
+
+        Debug.DrawRay(position, -movementVector * distance);
+        
+        //Cast ray between this position and previous and check for collision with player
+        RaycastHit2D hit = Physics2D.Raycast(position, -movementVector, distance);
+
+        // If nothing was hit, return
+        if (!hit.collider || !_collisionsEnabled) return;
+
+        if (hit.collider.gameObject.CompareTag("Player") || hit.collider.gameObject.CompareTag("Forcefield"))
+        {
+            onBulletHitScriptableObject.OnBulletHit();
         }
     }
 
     // Update is called once per frame
-    void Update()
+    private void Update()
     {
         MoveBullet();
+        HandleWave();
         CheckScreenEdgesWithSingle();
+        CheckCollisionBetweenFrames();
     }
 
-    void MoveBullet() {
-        transform.Translate(movementVector * moveSpeed * Time.deltaTime);
+    private void HandleWave() {
+        if (Math.Abs(1 / (period) - frequency) > 0.001f) {
+            // Recalculate frequency & omega.
+            frequency = 1 / (period);
+            angularFrequency = (2 * Mathf.PI) * frequency;
+        }
+        // Update elapsed time.
+        elapsedTime += Time.deltaTime;
+        // Calculate new omega-time product.
+        float omegaProduct = (angularFrequency * elapsedTime);
+        // Plug in all calculated variables into the complete Sine wave equation.
+        float waveHeight = (amplitude * Mathf.Sin (omegaProduct + phase));
+        
+        if(startingMovementDirection == Vector3.right || startingMovementDirection == Vector3.left) {
+            movementVector = new Vector3(movementVector.x, waveHeight, 0f);
+        } else {
+            movementVector = new Vector3(waveHeight, movementVector.y, 0f);
+        }
+
+        elapsedTime += Time.deltaTime;
     }
 
-    void CheckScreenEdgesWithSingle() {
-        float halfX = spriteSize.x / 2;
-        float halfY = spriteSize.y / 2;
+    private void MoveBullet() {
+        _previousLocation = _transform.position;
+        transform.Translate(movementVector * (moveSpeed * Time.deltaTime));
+    }
+
+    
+    
+    private void CheckScreenEdgesWithSingle() {
+        float halfX = _spriteSize.x / 2;
+        float halfY = _spriteSize.y / 2;
 
         //checks if the edge of the bullet has reached the border, and moves it to the other side of the screen
-        if(transform.position.x - halfX > camWorldSize.x && movementVector == Vector3.right) {
-            Vector3 newSpawnVector = new Vector3(-camWorldSize.x - halfX, transform.position.y, transform.position.z);
-            StartCoroutine(HitScreenEdge(newSpawnVector));
-        } else if(transform.position.x + halfX < -camWorldSize.x && movementVector == Vector3.left) {
-            Vector3 newSpawnVector = new Vector3(camWorldSize.x + halfX, transform.position.y, transform.position.z);
-            StartCoroutine(HitScreenEdge(newSpawnVector));
-        } else if (transform.position.y - halfY > camWorldSize.y && movementVector == Vector3.up) {
-            Vector3 newSpawnVector = new Vector3(transform.position.x, -camWorldSize.y - halfY, transform.position.z);
-            StartCoroutine(HitScreenEdge(newSpawnVector));
-        } else if (transform.position.y + halfY < -camWorldSize.y && movementVector == Vector3.down) {
-            Vector3 newSpawnVector = new Vector3(transform.position.x, camWorldSize.y + halfY, transform.position.z);
-            StartCoroutine(HitScreenEdge(newSpawnVector));
+        Vector3 position = _transform.position;
+        if(position.x - halfX > camWorldSize.x && movementVector.x > 0f) {
+            HitEdge(new Vector3(-camWorldSize.x - halfX, position.y, position.z));
+        } else if(position.x + halfX < -camWorldSize.x && movementVector.x < 0f) {
+            HitEdge(new Vector3(camWorldSize.x + halfX, position.y, position.z));
         }
+        
+        if (position.y - halfY > camWorldSize.y && movementVector.y > 0f) {
+            HitEdge(new Vector3(position.x, -camWorldSize.y - halfY, position.z));
+        } else if (position.y + halfY < -camWorldSize.y && movementVector.y < 0f) {
+            HitEdge(new Vector3(position.x, camWorldSize.y + halfY, position.z));
+        }
+        
     } 
 
-    IEnumerator HitScreenEdge(Vector3 newSpawnVector) {
-        trailRenderer.emitting = false;
-        yield return new WaitForSeconds(0.1f);
-        transform.position = newSpawnVector;
-        yield return new WaitForSeconds(0.1f);
-        trailRenderer.emitting = true;
+    private void HitEdge(Vector3 newSpawnVector)
+    {
+        _hitEdge = true;
+        if(!_collisionsEnabled) { EnableCollisions(0f); }
+        _transform.position = newSpawnVector;
+        _trailRenderer.Clear();
     }
-
 }

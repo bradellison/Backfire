@@ -1,35 +1,35 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Forcefield : MonoBehaviour
 {
-
-    PlayerController player;
+    private PlayerController _playerController;
+    private GameObject _player;
+    private Transform _transform;
+    private Vector3 _position;
     public float forcefieldBulletHitCounterDecrease;
 
-    void Start()
+    private void Start()
     {
-        player = transform.parent.GetComponent<PlayerController>();
-        Physics2D.IgnoreCollision(GameObject.FindGameObjectWithTag("Player").GetComponent<Collider2D>(), this.gameObject.GetComponent<Collider2D>());
+        _transform = transform;
+        _player = _transform.parent.gameObject;
+        _playerController = _player.GetComponent<PlayerController>();
+        Physics2D.IgnoreCollision(_playerController.GetComponent<Collider2D>(), this.gameObject.GetComponent<Collider2D>());
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
-        transform.position = transform.parent.transform.position;
+        _transform.position = _player.transform.position;
     }
-
-    void OnCollisionEnter2D(Collision2D other) {
-        if(other.gameObject.tag == "World") {
-            player.HitWorld(other.gameObject, true);
-        } else if (other.gameObject.tag == "Bullet") {
+    private void OnCollisionEnter2D(Collision2D other) {
+        if(other.gameObject.CompareTag("World")) {
+            _playerController.HitWorld(other.gameObject, true);
+        } else if (other.gameObject.CompareTag("Bullet")) {
             HitBullet(other.gameObject);
         }
     }
 
-    void HitBullet(GameObject bullet) {
-        player.DecreaseForceFieldCounter(forcefieldBulletHitCounterDecrease);
+    public void HitBullet(GameObject bullet) {
+        _playerController.DecreaseForceFieldCounter(forcefieldBulletHitCounterDecrease);
         Destroy(bullet);
     }
 

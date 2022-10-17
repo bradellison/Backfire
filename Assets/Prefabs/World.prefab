@@ -114,14 +114,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   objectSize: {x: 1.3, y: 1.3, z: 1.3}
-  resolution: 128
-  noiseScale: 14.7
+  resolution: 32
+  updateFreqInSeconds: 0
+  noiseScale: 3.6
   seed: 22
   octaves: 3
   persistance: 0.179
   lacunarity: 2.03
   offset: {x: 0, y: 0}
   offsetAutomaticIncrement: {x: 0.1, y: 0.02}
+  maxOffsetAutomaticIncrement: {x: 0, y: 0}
+  targetOffsetAutomaticIncrement: {x: 0, y: 0}
+  shouldUpdateOffset: 0
   autoUpdate: 1
   coloring:
     serializedVersion: 2
@@ -180,7 +184,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f04e6b58789945da90286134ed10fc9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  worldDestoryParticles: {fileID: 5181746770209003263, guid: 5eb98930519ef44ff9c486dad9244429, type: 3}
+  worldDestroyParticles: {fileID: 5181746770209003263, guid: 5eb98930519ef44ff9c486dad9244429, type: 3}
 --- !u!1 &7232397992237234912
 GameObject:
   m_ObjectHideFlags: 0

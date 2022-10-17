@@ -1,39 +1,25 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class World : MonoBehaviour
 {
 
     //public Gradient[] colorings;
-    public GameObject worldDestoryParticles;
-    bool isQuitting;
+    public GameObject worldDestroyParticles;
+    private bool _isQuitting;
 
-    void Start()
-    {
-        //this.gameObject.GetComponent<MapGenerator>().coloring = colorings[0];
+    private void OnApplicationQuit() {
+        _isQuitting = true;
     }
 
-    // Update is called once per frame
-    void Update()
+    private void OnCollisionEnter2D(Collision2D other) 
     {
-        
-    }
-
-    void OnApplicationQuit() {
-        isQuitting = true;
-    }
-
-    void OnCollisionEnter2D(Collision2D other) 
-    {
-        if (other.gameObject.tag == "Bullet") {
+        if (other.gameObject.CompareTag("Bullet")) {
             Physics2D.IgnoreCollision(other.gameObject.GetComponent<Collider2D>(), this.gameObject.GetComponent<Collider2D>());
         }
     }
-
-    void OnDestroy() {
-        if(!isQuitting) {
-            GameObject particles = Instantiate(worldDestoryParticles);
+    private void OnDestroy() {
+        if(!_isQuitting) {
+            GameObject particles = Instantiate(worldDestroyParticles);
             particles.transform.position = this.transform.position;
         }
     }

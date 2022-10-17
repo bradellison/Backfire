@@ -1,35 +1,35 @@
-using System.Collections;
-using System.Collections.Generic;
+using CanvasScripts;
+using ManagerScripts;
+using ScriptableObjects;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
 
+    [Header("Movement")] 
+    private Transform _transform;
     public float moveSpeed;
     public Vector3 movementVector;
+    public Vector3 swipeVector;    
+    public float speedBoostMultiplier;
+    private bool _isSpeedBoostActive;
 
-    Vector2 camWorldSize = new Vector2();
-    Vector2 spriteSize = new Vector2(); 
+    private Vector2 _camWorldSize;
 
-    public GameObject playerPrefab;
+    private GameManager _gameManager;
 
-    public bool canSpawnX;
-    public bool canSpawnY;
-    
-    public int playerCount;
-
-    GameManager gameManager;
-    SpawnManager spawnManager;
-    ScoreManager scoreManager;
-    SFXManager sfxManager;
-
+    [Header("Sprite")]
+    private SpriteRenderer _spriteRenderer;
+    private Vector2 _spriteSize;
     public Sprite rightSprite;
     public Sprite upSprite;
     public Sprite leftSprite;
     public Sprite downSprite;
 
+    [Header("Forcefield")]
     public GameObject forcefieldPrefab;
-    GameObject forcefield;
+    private GameObject _forcefield;
+    
     public bool isForcefieldActive;
     public float forcefieldCounter;
     public float forcefieldTarget;
@@ -38,218 +38,183 @@ public class PlayerController : MonoBehaviour
 
     public float forcefieldBulletHitCounterDecrease;
 
-    public float speedBoostMultiplier;
-    public bool isSpeedBoostActive;
+    [SerializeField] private OnBulletHitScriptableObject onBulletHitScriptableObject;
+    [SerializeField] private OnPlayerDeadScriptableObject onPlayerDeadScriptableObject;
+    
 
-    // Start is called before the first frame update
-    void Start()
+    private void Awake()
     {
-        gameManager = GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>();
-        spawnManager = GameObject.FindGameObjectWithTag("SpawnManager").GetComponent<SpawnManager>();
-        scoreManager = GameObject.FindGameObjectWithTag("ScoreManager").GetComponent<ScoreManager>();
-        sfxManager = GameObject.FindGameObjectWithTag("SFXManager").GetComponent<SFXManager>();
-        camWorldSize.y = Camera.main.orthographicSize;
-        camWorldSize.x = Camera.main.orthographicSize * Camera.main.aspect;
-        spriteSize.x = this.gameObject.GetComponent<SpriteRenderer>().bounds.size.x;
-        spriteSize.y = this.gameObject.GetComponent<SpriteRenderer>().bounds.size.y;
+        _transform = transform;
+        _spriteRenderer = this.gameObject.GetComponent<SpriteRenderer>();
+        _spriteSize = _spriteRenderer.bounds.size;
     }
 
-    void SpawnNewPlayer(Vector3 newSpawnVector, bool xSide) {
-        GameObject newPlayer = Instantiate(playerPrefab);
-        newPlayer.transform.position = newSpawnVector;
-        newPlayer.GetComponent<PlayerController>().movementVector = movementVector;
-        if(xSide) {
-            newPlayer.GetComponent<PlayerController>().canSpawnX = false;
-            canSpawnX = false;
-        } else {
-            newPlayer.GetComponent<PlayerController>().canSpawnY = false;
-            canSpawnY = false;
-        }
+    private void OnEnable()
+    {
+        onBulletHitScriptableObject.onBulletHitEvent.AddListener(HitBullet);
     }
 
-    void UpdatePlayerCounts() {
-        // if final player, allow it to spawn regardless of screen position
-        if(GameObject.FindGameObjectsWithTag("Player").Length == 1) {
-            canSpawnX = true;
-            canSpawnY = true;
-        }
+    private void OnDisable()
+    {
+        onBulletHitScriptableObject.onBulletHitEvent.RemoveListener(HitBullet);
     }
-
-    void CheckScreenEdgesWithDuplicatePlayers() {
-        float fullX = spriteSize.x;
-        float fullY = spriteSize.y;
-        float halfX = spriteSize.x / 2;
-        float halfY = spriteSize.y / 2;
-
-        UpdatePlayerCounts();
-        //checks if the edge of the player has reached the border, and spawns a new player on the other side if so
-        //New spawns can't spawn new players until they have been fully onscreen, function below
-        if(transform.position.x + halfX > camWorldSize.x && movementVector == Vector3.right && canSpawnX) {
-            Vector3 newSpawnVector = new Vector3(-camWorldSize.x - halfX, transform.position.y, transform.position.z);
-            SpawnNewPlayer(newSpawnVector, true);
-        } else if(transform.position.x - halfX < -camWorldSize.x && movementVector == Vector3.left && canSpawnX) {
-            Vector3 newSpawnVector = new Vector3(camWorldSize.x + halfX, transform.position.y, transform.position.z);
-            SpawnNewPlayer(newSpawnVector, true);
-        } else if (transform.position.y + halfY > camWorldSize.y && movementVector == Vector3.up && canSpawnY) {
-            Vector3 newSpawnVector = new Vector3(transform.position.x, -camWorldSize.y - halfY, transform.position.z);
-            SpawnNewPlayer(newSpawnVector, false);
-        } else if (transform.position.y - halfY < -camWorldSize.y && movementVector == Vector3.down && canSpawnY) {
-            Vector3 newSpawnVector = new Vector3(transform.position.x, camWorldSize.y + halfY, transform.position.z);
-            SpawnNewPlayer(newSpawnVector, false);
+    
+    private void Start()
+    {
+        _gameManager = GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>();
+        
+        Camera mainCamera = Camera.main;
+        if (!mainCamera)
+        {
+            return;
         }
-
-        //if a player is fully off-screen, destroy that player
-        if(transform.position.x - halfX > camWorldSize.x && movementVector == Vector3.right) {
-            Destroy(this.gameObject);
-        } else if(transform.position.x + halfX < -camWorldSize.x && movementVector == Vector3.left) {
-            Destroy(this.gameObject);
-        } else if(transform.position.y - halfY > camWorldSize.y && movementVector == Vector3.up) {
-            Destroy(this.gameObject);
-        } else if(transform.position.y + halfY < -camWorldSize.y && movementVector == Vector3.down) {
-            Destroy(this.gameObject);
-        }
-
-        //New spawns can't spawn new players until they have been fully onscreen
-        if(!canSpawnX) {
-            if(transform.position.x + halfX < camWorldSize.x && transform.position.x - halfX > -camWorldSize.x) {
-                canSpawnX = true;
-            }
-        }
-        if(!canSpawnY) {
-            if(transform.position.y + halfY < camWorldSize.y && transform.position.y - halfY > -camWorldSize.y) {
-                canSpawnY = true;
-            }
-        }
+        _camWorldSize.y = mainCamera.orthographicSize; 
+        _camWorldSize.x = _camWorldSize.y * mainCamera.aspect;
     }
-
-   
-    void CheckScreenEdgesWithSinglePlayer() {
-        float halfX = spriteSize.x / 2;
-        float halfY = spriteSize.y / 2;
-
+    
+    private void CheckScreenEdges() {
+        float halfX = _spriteSize.x / 2;
+        float halfY = _spriteSize.y / 2;
+        
         //checks if the edge of the player has reached the border, and moves it to the other side of the screen
-        if(transform.position.x - halfX > camWorldSize.x && movementVector == Vector3.right) {
-            Vector3 newSpawnVector = new Vector3(-camWorldSize.x - halfX, transform.position.y, transform.position.z);
-            transform.position = newSpawnVector;
-        } else if(transform.position.x + halfX < -camWorldSize.x && movementVector == Vector3.left) {
-            Vector3 newSpawnVector = new Vector3(camWorldSize.x + halfX, transform.position.y, transform.position.z);
-            transform.position = newSpawnVector;
-        } else if (transform.position.y - halfY > camWorldSize.y && movementVector == Vector3.up) {
-            Vector3 newSpawnVector = new Vector3(transform.position.x, -camWorldSize.y - halfY, transform.position.z);
-            transform.position = newSpawnVector;
-        } else if (transform.position.y + halfY < -camWorldSize.y && movementVector == Vector3.down) {
-            Vector3 newSpawnVector = new Vector3(transform.position.x, camWorldSize.y + halfY, transform.position.z);
-            transform.position = newSpawnVector;
+        Vector3 position = _transform.position;
+        if(position.x - halfX > _camWorldSize.x && movementVector == Vector3.right) {
+            Vector3 newSpawnVector = new Vector3(-_camWorldSize.x - halfX, position.y, position.z);
+            _transform.position = newSpawnVector;
+        } else if(position.x + halfX < -_camWorldSize.x && movementVector == Vector3.left) {
+            Vector3 newSpawnVector = new Vector3(_camWorldSize.x + halfX, position.y, position.z);
+            _transform.position = newSpawnVector;
+        } else if (position.y - halfY > _camWorldSize.y && movementVector == Vector3.up) {
+            Vector3 newSpawnVector = new Vector3(position.x, -_camWorldSize.y - halfY, position.z);
+            _transform.position = newSpawnVector;
+        } else if (position.y + halfY < -_camWorldSize.y && movementVector == Vector3.down) {
+            Vector3 newSpawnVector = new Vector3(position.x, _camWorldSize.y + halfY, position.z);
+            _transform.position = newSpawnVector;
         }
-    } 
+    }
 
-    void MovePlayer() {
-        if(Input.GetKeyDown(KeyCode.W)) {
-            this.GetComponent<SpriteRenderer>().sprite = upSprite;
+    private void MovePlayer() {
+        if(Input.GetKeyDown(KeyCode.W) || swipeVector == Vector3.up) {
+            _spriteRenderer.sprite = upSprite;
             movementVector = Vector3.up;
-        } else if(Input.GetKeyDown(KeyCode.A)) {
-            this.GetComponent<SpriteRenderer>().sprite = leftSprite;
+        } else if(Input.GetKeyDown(KeyCode.A) || swipeVector == Vector3.left) {
+            _spriteRenderer.sprite = leftSprite;
             movementVector = Vector3.left;
-        } else if(Input.GetKeyDown(KeyCode.S)) {
-            this.GetComponent<SpriteRenderer>().sprite = downSprite;
+        } else if(Input.GetKeyDown(KeyCode.S) || swipeVector == Vector3.down) {
+            _spriteRenderer.sprite = downSprite;
             movementVector = Vector3.down;
-        } else if(Input.GetKeyDown(KeyCode.D)) {
-            this.GetComponent<SpriteRenderer>().sprite = rightSprite;
+        } else if(Input.GetKeyDown(KeyCode.D) || swipeVector == Vector3.right) {
+            _spriteRenderer.sprite = rightSprite;
             movementVector = Vector3.right;
         } 
         
-        if(Input.GetKeyDown(KeyCode.Space) && !isSpeedBoostActive) {
-            isSpeedBoostActive = true;
-        } else if(Input.GetKeyUp(KeyCode.Space) && isSpeedBoostActive) {
-            isSpeedBoostActive = false;
+        if(Input.GetKeyDown(KeyCode.Space) && !_isSpeedBoostActive) {
+            _isSpeedBoostActive = true;
+        } else if(Input.GetKeyUp(KeyCode.Space) && _isSpeedBoostActive) {
+            _isSpeedBoostActive = false;
         }
 
         float boostMultiplier = 1f; 
-        if(isSpeedBoostActive) {
+        if(_isSpeedBoostActive) {
             boostMultiplier = speedBoostMultiplier;
         }
-        transform.Translate(movementVector * moveSpeed * boostMultiplier * Time.deltaTime);
+        transform.Translate(movementVector * (moveSpeed * boostMultiplier * Time.deltaTime));
     }
 
-    void IncrementForceFieldCounter() {
-        if(!isForcefieldActive) {
-            forcefieldCounter += 1;
-            if (forcefieldCounter > forcefieldTarget) {
-                forcefieldCounter = forcefieldTarget;
-            }
-            if (forcefieldCounter == forcefieldTarget) {
-                isForcefieldActive = true;
-                CreateForceField();
-            }
+    private void IncrementForceFieldCounter()
+    {
+        if (isForcefieldActive) return;
+        
+        forcefieldCounter += 1;
+        if (forcefieldCounter > forcefieldTarget)
+        {
+            forcefieldCounter = forcefieldTarget;
         }
+
+        if (forcefieldTarget - forcefieldCounter > 0.001f) return;
+        isForcefieldActive = true;
+        CreateForceField();
     }
 
-    void CreateForceField() {
-        forcefield = Instantiate(forcefieldPrefab);
-        forcefield.transform.position = this.transform.position;
-        forcefield.transform.parent = transform;
-        forcefield.GetComponent<Forcefield>().forcefieldBulletHitCounterDecrease = forcefieldBulletHitCounterDecrease;
+    private void CreateForceField() {
+        _forcefield = Instantiate(forcefieldPrefab, transform, true);
+        _forcefield.transform.position = _transform.position;
+        _forcefield.GetComponent<Forcefield>().forcefieldBulletHitCounterDecrease = forcefieldBulletHitCounterDecrease;
+        _gameManager.canvasManager.gameplayCanvas.GetComponent<GameplayCanvas>().forcefieldBar.UpdateColor();
     }
 
     public void DecreaseForceFieldCounter(float amount) {
+        //Different amount to allow for usual falloff, and also accelerated drop when hitting a bullet
         if(isForcefieldActive) {
             amount *= forcefieldActiveFalloffMultiplier;
         }
+        
+        //Don't allow forcefield counter to go below 0
         forcefieldCounter -= amount;
-        if(forcefieldCounter < 0) {
-            forcefieldCounter = 0;
-            if(isForcefieldActive) {
-                isForcefieldActive = false;
-                Destroy(forcefield);
-            }
+        if (forcefieldCounter > 0) return;
+        forcefieldCounter = 0;
+        
+        //If it does hit 0, destroy forcefield if active
+        if (!isForcefieldActive) return;
+        isForcefieldActive = false;
+        Destroy(_forcefield);
+        _gameManager.canvasManager.gameplayCanvas.GetComponent<GameplayCanvas>().forcefieldBar.UpdateColor();
+    }
+
+    private void Update()
+    {
+        CheckScreenEdges();
+        MovePlayer();
+    }
+
+    private void FixedUpdate() {
+        ForcefieldUpdates();
+    }
+
+    private void ForcefieldUpdates() {
+        DecreaseForceFieldCounter(forcefieldFalloff);
+    }
+    
+    private void OnCollisionEnter2D(Collision2D other) {
+        if(other.gameObject.CompareTag("World")) {
+            HitWorld(other.gameObject, false);
+        } else if (other.gameObject.CompareTag("Bullet")) {
+            HitBullet();
         }
     }
 
-    void ForcefieldUpdates() {
-        DecreaseForceFieldCounter(forcefieldFalloff);
-    }
-
-    // Update is called once per frame
-    void Update()
+    private void HitBullet()
     {
-        UpdatePlayerCounts();
-        CheckScreenEdgesWithSinglePlayer();
-        ForcefieldUpdates();
-
-        MovePlayer();
-
-        transform.Translate(movementVector * moveSpeed * Time.deltaTime);
-    }
-
-    void OnCollisionEnter2D(Collision2D other) {
-        if(other.gameObject.tag == "World") {
-            HitWorld(other.gameObject, false);
-        } else if (other.gameObject.tag == "Bullet") {
-            if(!isForcefieldActive) {
-                sfxManager.HitPlayer();
-                GameOver();
-            }
+        if (isForcefieldActive) return;
+        onPlayerDeadScriptableObject.OnPlayerDead();
+        if (this.gameObject != null)
+        {
+            Destroy(this.gameObject);
         }
     }
 
     public void HitWorld(GameObject world, bool hitByForcefield) {
-        scoreManager.HitWorld();
-        spawnManager.SpawnBullet(transform.position, movementVector);
+        _gameManager.scoreManager.HitWorld();
+        _gameManager.spawnManager.SpawnBullet(transform.position, movementVector);
         
         //Below is to stop multiple worlds spawning if forcefield and player collide with world
         if(!isForcefieldActive || (isForcefieldActive && hitByForcefield)) {
-            spawnManager.SpawnWorld();
+            _gameManager.spawnManager.SpawnWorld();
         }
         
         if(!isForcefieldActive) {
             IncrementForceFieldCounter();
         }
-        sfxManager.HitWorld();
+        
+        _gameManager.sfxManager.HitWorld();
         Destroy(world);
     }
 
-    void GameOver() {
-        gameManager.EndGame();
-        Destroy(this.gameObject);
+    private void OnDrawGizmosSelected()
+    {
+        // Draws a 5 unit long red line in front of the object
+        Gizmos.color = Color.red;
+        Gizmos.DrawRay(transform.position, movementVector);
     }
+
 }

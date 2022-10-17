@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class MapDisplay : MonoBehaviour
@@ -7,14 +5,12 @@ public class MapDisplay : MonoBehaviour
 
     public Renderer textureRenderer;
     
-    public void DrawNoiseMap(float[,] noiseMap, Vector3 objectSize, Gradient coloring) 
+    public void DrawNoiseMap(Texture2D texture, Color[] colourMap, float[,] noiseMap, Vector3 objectSize, Gradient coloring) 
     {
         int width = noiseMap.GetLength(0);
         int height = noiseMap.GetLength(1);
 
-        Texture2D texture = new Texture2D(width, height);
-
-        Color[] colourMap = new Color[width * height];
+        //Debug.Log("Create and evaluate all colours against provided gradient");
         for(int y = 0; y < height; y++) {
             for(int x = 0; x < width; x++) {
                 colourMap[y * width + x] = coloring.Evaluate(noiseMap[x,y]);
@@ -22,8 +18,15 @@ public class MapDisplay : MonoBehaviour
         }
         texture.wrapMode = TextureWrapMode.Clamp;
         
+
+        //Debug.Log("colourMap contains a total entries: " + colourMap.Length);
+        //Debug.Log("First entry is " + colourMap[0].ToString());
+        
         texture.SetPixels(colourMap);
+        //Debug.Log("Pixels set");
+
         texture.Apply();
+        //Debug.Log("Texture applied");
 
         textureRenderer.sharedMaterial.mainTexture = texture;
         
