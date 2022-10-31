@@ -1,3 +1,4 @@
+using System;
 using ManagerScripts;
 using TMPro;
 using UnityEngine;
@@ -16,6 +17,11 @@ namespace CanvasScripts
         {
             _gameManager = GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>();     
             endGameButton.onClick.AddListener(EndGame);
+        }
+
+        private void OnDisable()
+        {
+            nextLevelUnlockedText.enabled = false;
         }
 
         private void EndGame() {

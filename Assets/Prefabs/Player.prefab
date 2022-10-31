@@ -115,6 +115,7 @@ MonoBehaviour:
   forcefieldActiveFalloffMultiplier: 1.5
   forcefieldBulletHitCounterDecrease: 0.5
   onBulletHitScriptableObject: {fileID: 11400000, guid: 19d0e02dee36e420885bd30136b2aa65, type: 2}
+  onLaserHitScriptableObject: {fileID: 11400000, guid: 6bbcfe9a332964eaa8b6a4b6d20013e8, type: 2}
   onPlayerDeadScriptableObject: {fileID: 11400000, guid: fddf14ba57de74d5289f9246f3826084, type: 2}
 --- !u!50 &7871152117370483369
 Rigidbody2D:

@@ -11,6 +11,7 @@ namespace ManagerScripts
         public GameObject gameplayCanvas;
         public GameObject gameOverCanvas;
         public GameObject settingsMenuCanvas;
+        public GameObject debugCanvas;
         
         [Header("Scriptable Objects")]
         [SerializeField] private OnPlayerDeadScriptableObject onPlayerDeadScriptableObject;
@@ -43,6 +44,12 @@ namespace ManagerScripts
             gameOverCanvas.SetActive(true);
         }
 
+        public void ToggleDebugCanvas()
+        {
+            //if(debugCanvas.activeSelf)
+            debugCanvas.SetActive(!debugCanvas.activeSelf);
+        }
+        
         public void OpenSettingsMenu() {
             titleCanvas.SetActive(false);
             settingsMenuCanvas.SetActive(true);

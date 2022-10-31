@@ -14,7 +14,6 @@ public class Bullet : MonoBehaviour
     public Vector3 startingMovementDirection ;
     public Vector2 camWorldSize;
 
-
     private GameObject _player;
     private Collider2D _playerCollider;
     private Collider2D _collider;
@@ -51,17 +50,17 @@ public class Bullet : MonoBehaviour
         _spriteSize = this.gameObject.GetComponent<SpriteRenderer>().bounds.size;
 
         //Enable collisions after 0.1 seconds to avoid instant death
-        StartCoroutine(EnableCollisions(0.1f));
+        Invoke(nameof(EnableCollisions), 0.5f);
 
         _trailRenderer = this.gameObject.transform.GetChild(0).GetComponent<TrailRenderer>();
         _hitEdge = false;
         _collisionsEnabled = false;
 
-        period = 5f;    }
+        period = 5f;    
+    }
 
-    private IEnumerator EnableCollisions(float waitSeconds)
+    private void EnableCollisions()
     {
-        yield return new WaitForSeconds(waitSeconds);
         _collisionsEnabled = true;
         if (_player) { Physics2D.IgnoreCollision(_playerCollider, _collider, false); }         
     }
@@ -77,7 +76,8 @@ public class Bullet : MonoBehaviour
 
         Vector3 position = _transform.position;
         Vector3 changeVector = _previousLocation - position;
-        float distance = Mathf.Abs(changeVector.x) + Mathf.Abs(changeVector.y) + Mathf.Abs(changeVector.z);
+        float distance = Vector3.Distance(_previousLocation, position);
+        //float distance = Mathf.Abs(changeVector.x) + Mathf.Abs(changeVector.y) + Mathf.Abs(changeVector.z);
 
         Debug.DrawRay(position, -movementVector * distance);
         
@@ -154,7 +154,7 @@ public class Bullet : MonoBehaviour
     private void HitEdge(Vector3 newSpawnVector)
     {
         _hitEdge = true;
-        if(!_collisionsEnabled) { EnableCollisions(0f); }
+        if(!_collisionsEnabled) { EnableCollisions(); }
         _transform.position = newSpawnVector;
         _trailRenderer.Clear();
     }

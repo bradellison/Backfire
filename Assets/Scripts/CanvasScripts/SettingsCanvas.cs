@@ -29,9 +29,13 @@ namespace CanvasScripts
         public Button unlockLevelsButton;
 
         public Button enableDebugLoggingButton;
-        public TMP_Text debugLoggingText;
 
+        [SerializeField] private OnPreferencesResetScriptableObject onPreferencesResetScriptableObject;
+        public Button resetPreferencesButton;
+        
         private GameManager _gameManager;
+
+        
 
         private void Start()
         {
@@ -40,28 +44,35 @@ namespace CanvasScripts
             settingsMenuButton.onClick.AddListener(ToggleSettingsMenu);
     
             musicVolumeSlider.onValueChanged.AddListener(delegate {MusicVolumeSliderChanged(); });
-            musicVolumeSlider.value = _gameManager.musicManager.volume;
 
             sfxVolumeSlider.onValueChanged.AddListener(delegate {SfxVolumeSliderChanged(); });
-            sfxVolumeSlider.value = _gameManager.sfxManager.volume;
 
             backgroundResolutionSlider.onValueChanged.AddListener(delegate {BackgroundResolutionSliderChanged(); });
-            backgroundResolutionSlider.value = _gameManager.outerSpace.resolution;
 
             unlockLevelsButton.onClick.AddListener(UnlockLevels);
 
-            enableDebugLoggingButton.onClick.AddListener(ToggleDebugLogging);
-            debugLoggingText.text = Debug.unityLogger.logEnabled.ToString();
+            enableDebugLoggingButton.onClick.AddListener(ToggleDebug);
             
-            SetInitialTextValues();
+            resetPreferencesButton.onClick.AddListener(ResetPrefs);
+            
+            SetAllTextValues();
         }
         
         private void ToggleSettingsMenu() {
             _gameManager.ToggleSettingsMenu();
         }
-
-        private void SetInitialTextValues()
+        
+        private void ToggleDebug()
         {
+            _gameManager.canvasManager.ToggleDebugCanvas();
+        }
+        
+        private void SetAllTextValues()
+        {
+            musicVolumeSlider.value = _gameManager.musicManager.volume;
+            sfxVolumeSlider.value = _gameManager.sfxManager.volume;
+            backgroundResolutionSlider.value = _gameManager.outerSpace.resolution;
+            
             musicVolumeText.text = ($"{Mathf.RoundToInt(musicVolumeSlider.value).ToString()}");
             sfxVolumeText.text = ($"{Mathf.RoundToInt(sfxVolumeSlider.value).ToString()}");
             backgroundResolutionText.text = ($"{Mathf.RoundToInt(backgroundResolutionSlider.value).ToString()}");
@@ -83,12 +94,12 @@ namespace CanvasScripts
 
         private void UnlockLevels() {
             _gameManager.levelManager.UnlockAllLevels();
-            debugLoggingText.text = Debug.unityLogger.logEnabled.ToString();
         }
-
-        private void ToggleDebugLogging() {
-            _gameManager.ToggleDebugLogging();
-            debugLoggingText.text = Debug.unityLogger.logEnabled.ToString();
+        
+        private void ResetPrefs()
+        {
+            onPreferencesResetScriptableObject.OnPreferencesReset();
+            Invoke(nameof(SetAllTextValues), 0.1f);
         }
     
     }

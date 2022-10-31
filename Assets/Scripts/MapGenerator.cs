@@ -8,7 +8,6 @@ public class MapGenerator : MonoBehaviour
 
     [Range(1,512)]
     public int resolution;
-    public float updateFreqInSeconds;
 
     public float noiseScale;
 
@@ -40,14 +39,16 @@ public class MapGenerator : MonoBehaviour
     private Color[] _colourMap;
     private float _elapsedTime;
 
-    public void GenerateMap() {
-        float[,] noiseMap = Noise.GenerateNoiseMap(resolution, seed, noiseScale, octaves, persistance, lacunarity, offset);
+    private float[,] _noiseMap;
 
+    public void GenerateMap() {
+        _noiseMap = Noise.GenerateNoiseMap(resolution, seed, noiseScale, octaves, persistance, lacunarity, offset);
+        
         if (!_display) {
             _display = this.gameObject.GetComponent<MapDisplay>();
         }
 
-        _display.DrawNoiseMap(_texture, _colourMap, noiseMap, objectSize, coloring);
+        _display.DrawNoiseMap(_texture, _colourMap, _noiseMap, objectSize, coloring);
     }
 
     private void CreateTextureAndColourMap() {
@@ -66,7 +67,19 @@ public class MapGenerator : MonoBehaviour
     }
     
     private void UpdateIncrements() {
-        targetOffsetAutomaticIncrement = new Vector2(Random.Range(-maxOffsetAutomaticIncrement.x, maxOffsetAutomaticIncrement.x), Random.Range(-maxOffsetAutomaticIncrement.y, maxOffsetAutomaticIncrement.y));
+        //For random targets within max increments
+        //targetOffsetAutomaticIncrement = new Vector2(Random.Range(-maxOffsetAutomaticIncrement.x, maxOffsetAutomaticIncrement.x), Random.Range(-maxOffsetAutomaticIncrement.y, maxOffsetAutomaticIncrement.y));
+        
+        //For basic one way then the other
+        if (Mathf.Abs(targetOffsetAutomaticIncrement.x) != Mathf.Abs(maxOffsetAutomaticIncrement.x))
+        {
+            targetOffsetAutomaticIncrement = maxOffsetAutomaticIncrement;
+        }
+        else
+        {
+            targetOffsetAutomaticIncrement = -1 * targetOffsetAutomaticIncrement;
+        }
+
         //offsetAutomaticIncrement = targetOffsetAutomaticIncrement;
         StartCoroutine(LerpOffsetVector());
     }
@@ -81,22 +94,30 @@ public class MapGenerator : MonoBehaviour
 
     private IEnumerator LerpOffsetVector() {
         _isUpdatingOffset = true;
-        float timeElapsedLerp = 0f;
-        float lerpDuration = 5f;
+        float elapsedFrameCount = 0;
+        float lerpFrameDuration = 300;
+        //float timeElapsedLerp = 0f;
+        //float lerpDuration = 20f;
         Vector2 startOffsetIncrement = offsetAutomaticIncrement;
-        while(timeElapsedLerp < lerpDuration && shouldUpdateOffset) {
-            offsetAutomaticIncrement = Vector2.Lerp(startOffsetIncrement, targetOffsetAutomaticIncrement, timeElapsedLerp / lerpDuration);
-            timeElapsedLerp += Time.deltaTime;
+        //while(timeElapsedLerp < lerpDuration && shouldUpdateOffset) {
+        while(elapsedFrameCount < lerpFrameDuration && shouldUpdateOffset) {
+            //offsetAutomaticIncrement = Vector2.Lerp(startOffsetIncrement, targetOffsetAutomaticIncrement, timeElapsedLerp / lerpDuration);
+            offsetAutomaticIncrement = Vector2.Lerp(startOffsetIncrement, targetOffsetAutomaticIncrement, elapsedFrameCount / lerpFrameDuration);
+            elapsedFrameCount += 1;
+            //timeElapsedLerp += Time.deltaTime;
             yield return new WaitForSeconds(0.01f);
         }
         _isUpdatingOffset = false;
     }
+
+    private float _updateFreqInSeconds = 0.5f;
     
-    private void Update() {
+    private void Update()
+    {
         _elapsedTime += Time.deltaTime;
-        if(shouldUpdateOffset && !_isUpdatingOffset && _elapsedTime > updateFreqInSeconds) {
-            _elapsedTime = 0f;
+        if(shouldUpdateOffset && !_isUpdatingOffset && _elapsedTime > _updateFreqInSeconds) {
             UpdateIncrements();
+            _elapsedTime = 0;
         } 
         offset.x += offsetAutomaticIncrement.x;
         offset.y += offsetAutomaticIncrement.y;

@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 4156806966859775753}
   - component: {fileID: 634541606908090908}
   - component: {fileID: 292974850339594094}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Bullet
   m_TagString: Bullet
   m_Icon: {fileID: 0}
@@ -48,7 +48,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1b9c75e73247a4b4d9417ebd8bfe41dc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 9
+  moveSpeed: 12
   movementVector: {x: 0, y: 0, z: 0}
   startingMovementDirection: {x: 0, y: 0, z: 0}
   camWorldSize: {x: 0, y: 0}
@@ -168,7 +168,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4693077958852908753}
   - component: {fileID: 9179339533272290488}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Trail
   m_TagString: Untagged
   m_Icon: {fileID: 0}

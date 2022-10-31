@@ -19,28 +19,31 @@ namespace ManagerScripts
 
         [Header("Scriptable Objects")]
         [SerializeField] private OnPlayerDeadScriptableObject onPlayerDeadScriptableObject;
+        [SerializeField] private OnPreferencesResetScriptableObject onPreferencesResetScriptableObject;
 
         private void OnEnable()
         {
             onPlayerDeadScriptableObject.onPlayerDeadEvent.AddListener(GameOver);
+            onPreferencesResetScriptableObject.onPreferencesResetEvent.AddListener(ResetPrefs);
         }
 
         private void OnDisable()
         {
             onPlayerDeadScriptableObject.onPlayerDeadEvent.RemoveListener(GameOver);
+            onPreferencesResetScriptableObject.onPreferencesResetEvent.AddListener(ResetPrefs);
         }
         private void Awake()
         {
-            levelsUnlocked = new []{true, false, false, false, false};
-
             _minLevel = 1;
             _maxLevel = 5;
             level = 1;
+            
+            levelsUnlocked = new []{true, false, false, false, false};
+            LoadPrefs();
 
             _outerSpace = GameObject.FindGameObjectWithTag("OuterSpace").GetComponent<OuterSpace>();
             _gameManager = GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>();
         }
-
 
         private void UpdateLevel(int newLevel) {
             level = newLevel;
@@ -69,6 +72,7 @@ namespace ManagerScripts
         public void UnlockAllLevels() {
             for (int i = 0; i < levelsUnlocked.Length; i++) {
                 levelsUnlocked[i] = true;
+                SavePrefs(5);
             } 
         }
 
@@ -78,9 +82,31 @@ namespace ManagerScripts
             // If passed unlock threshold and next level isn't already unlocked
             if(finalScore >= levelUnlockThreshold && !levelsUnlocked[level]) {
                 levelsUnlocked[level] = true;
+                SavePrefs(level + 1);
                 _gameManager.canvasManager.gameOverCanvas.GetComponent<GameOverCanvas>().nextLevelUnlockedText.enabled = true;
             }
         }
-    
+
+        private void SavePrefs(int newLevelUnlocked)
+        {
+            PlayerPrefs.SetInt("MaxLevelUnlocked", newLevelUnlocked);
+            PlayerPrefs.Save();
+        }
+
+        private void LoadPrefs()
+        {
+            if (!PlayerPrefs.HasKey("MaxLevelUnlocked")) { return; }
+            
+            int maxLevelUnlocked = PlayerPrefs.GetInt("MaxLevelUnlocked");
+            for (int i = 0; i < maxLevelUnlocked; i++) {
+                levelsUnlocked[i] = true;
+            } 
+        }
+        
+        private void ResetPrefs()
+        {
+            PlayerPrefs.SetInt("MaxLevelUnlocked", 1);
+            levelsUnlocked = new []{true, false, false, false, false};
+        }
     }
 }

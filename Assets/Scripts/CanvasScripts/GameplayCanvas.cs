@@ -1,6 +1,8 @@
 using ManagerScripts;
+using ScriptableObjects;
 using TMPro;
 using UnityEngine;
+using UnityEngine.PlayerLoop;
 
 namespace CanvasScripts
 {
@@ -9,17 +11,10 @@ namespace CanvasScripts
 
         public ForcefieldUIBar forcefieldBar;
         public TMP_Text scoreText;
-
-        private GameManager _gameManager;
-
-        private void Start() {
-            _gameManager = GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>();
-            UpdateScore();
-        }
-
-        public void UpdateScore()
+        
+        public void UpdateScore(int score)
         {
-            scoreText.text = ($"Score: {_gameManager.scoreManager.currentScore.ToString()}");
+            scoreText.text = ($"Score: {score.ToString()}");
         }
 
     }

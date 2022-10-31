@@ -1,18 +1,28 @@
+using System;
+using System.Collections;
 using ManagerScripts;
 using ScriptableObjects;
+using TMPro.EditorUtilities;
 using UnityEngine;
+using UnityEngine.Video;
 
 public class OuterSpace : MonoBehaviour
 {
-    [SerializeField] 
-    private BackgroundResolutionManagerScriptableObject backgroundResolutionManagerScriptableObject;
+
     private MapGenerator _mapGenerator;
     private GameManager _gameManager;
-
+    
+    private VideoPlayer _videoPlayer;
     private Vector2 _camWorldSize;
 
-    public float updateFreqInSeconds;
+    public bool isUsingVideoPlayer;
 
+    [Header("Video Player Variables")]
+    public VideoClip[] levelVideos;
+    public RenderTexture textureForRender;
+    public Material textureForRenderMat;
+
+    [Header("Automatic Generation Values")]
     public int resolution;
     public float[] noiseScales;
     public int[] octaves;
@@ -22,6 +32,77 @@ public class OuterSpace : MonoBehaviour
     public bool[] shouldUpdateOffsetBools;
     public Gradient[] spaceColorings;
 
+    [Header("Scriptable Objects")]
+    [SerializeField] private BackgroundResolutionManagerScriptableObject backgroundResolutionManagerScriptableObject;
+    [SerializeField] private OnPreferencesResetScriptableObject onPreferencesResetScriptableObject;
+
+    private void OnEnable()
+    {
+        backgroundResolutionManagerScriptableObject.backgroundResolutionChangeEvent.AddListener(ResolutionUpdated);
+        onPreferencesResetScriptableObject.onPreferencesResetEvent.AddListener(ResetPrefs);
+    }
+
+    private void OnDisable()
+    {
+        backgroundResolutionManagerScriptableObject.backgroundResolutionChangeEvent.RemoveListener(ResolutionUpdated);
+        onPreferencesResetScriptableObject.onPreferencesResetEvent.RemoveListener(ResetPrefs);
+    }
+
+    private IEnumerator ChangeVideo(VideoClip newClip)
+    {
+        _videoPlayer.Pause();
+        _videoPlayer.clip = newClip;
+        //_videoPlayer.Pause();
+        _videoPlayer.Prepare(); 
+        while (!_videoPlayer.isPrepared) 
+            yield return new WaitForEndOfFrame(); 
+        _videoPlayer.frame = 0; //just incase it's not at the first frame
+        _videoPlayer.Play();
+        //now display your render texture
+    }
+    
+    private void Awake()
+    {
+        _videoPlayer = this.gameObject.GetComponent<VideoPlayer>();
+        _mapGenerator = this.gameObject.GetComponent<MapGenerator>();
+        _gameManager = GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>();
+
+
+        _camWorldSize = Utilities.GetCamWorldSize();
+        if (isUsingVideoPlayer)
+        {
+            _mapGenerator.enabled = false;
+            _videoPlayer.enabled = true;
+            //textureForRender.width = Mathf.CeilToInt(_camWorldSize.x);
+            //Debug.Log(_camWorldSize.x + " " + transform.localScale.x);
+            //Not sure why size.y needs to be divided differently to x
+            //transform.localScale = new Vector3(_camWorldSize.x / 5f, _camWorldSize.y / 4.8f, transform.localScale.z);
+            textureForRenderMat.mainTexture = textureForRender;
+            
+            this.GetComponent<MeshRenderer>().material = textureForRenderMat;
+        }
+        else
+        {
+            _mapGenerator.enabled = true;
+            _videoPlayer.enabled = false;
+        }
+    }
+
+    private void CreateTextureForRender() {
+        //Debug.Log("Draw texture2D and colour map with width " + resolution + " and height " + resolution); 
+
+        int width = Convert.ToInt32(levelVideos[0].width);
+        int height = Convert.ToInt32(levelVideos[0].height);
+        //Debug.Log(width);
+        //Debug.Log(height);
+        //int width = 1920;
+        //int height = 1080;
+
+        textureForRender = new RenderTexture(256, 256, 16, RenderTextureFormat.ARGB32);;
+        textureForRender.Create();
+        //(256, 256, 16, RenderTextureFormat.ARGB32);
+    }
+    
     private void Start()
     {
         //noiseScales = new float[0.1f, 30.0f, 1.0f, 1.0f, 1.0f];
@@ -29,12 +110,7 @@ public class OuterSpace : MonoBehaviour
         //persistance = new float[0.5f, 0.48f, 1.0f, 1.0f, 1.0f];
         //lacunarity = new float[1.75f, 1.9f, 1.0f, 1.0f, 1.0f];
         //offsetIncrements = new Vector2[new Vector2[0.01f, 0f], new Vector2[0.03f, 0.01f], new Vector2[0f, 0f], new Vector2[0f, 0f], new Vector2[0f, 0f]];
-        
-        backgroundResolutionManagerScriptableObject.backgroundResolutionChangeEvent.AddListener(ResolutionUpdated);
-        
-        _mapGenerator = this.gameObject.GetComponent<MapGenerator>();
-        _gameManager = GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>();
-        _camWorldSize = _gameManager.camWorldSize;
+        LoadPrefs();
 
         _mapGenerator.objectSize.x = _camWorldSize.x / 5;
         _mapGenerator.objectSize.z = _camWorldSize.y / 5;
@@ -45,6 +121,7 @@ public class OuterSpace : MonoBehaviour
     private void ResolutionUpdated(int newResolution)
     {
         resolution = newResolution;
+        SavePrefs();
         float resDiff = resolution / 256f;
 
         _mapGenerator.resolution = resolution;
@@ -55,6 +132,15 @@ public class OuterSpace : MonoBehaviour
     }
 
     public void ChangeBackground(int level) {
+        if (isUsingVideoPlayer)
+        {
+            StartCoroutine(ChangeVideo(levelVideos[level - 1]));
+            //double previousTime = _videoPlayer.time;
+            //_videoPlayer.clip = levelVideos[level - 1];
+            //_videoPlayer.time = previousTime;
+            return;
+        }
+        
         if(level> noiseScales.Length) {
             level = 2;
         }
@@ -62,7 +148,6 @@ public class OuterSpace : MonoBehaviour
         //Values were configured at resolution of 256, some values must be altered to handle other resolutions
         float resDiff = resolution / 256f;
 
-        _mapGenerator.updateFreqInSeconds = updateFreqInSeconds;
         _mapGenerator.resolution = resolution;
         _mapGenerator.noiseScale = noiseScales[level - 1] * resDiff;
         _mapGenerator.octaves = octaves[level - 1];
@@ -74,7 +159,25 @@ public class OuterSpace : MonoBehaviour
 
         _mapGenerator.UpdateBackground();
     }
+    private void SavePrefs()
+    {
+        PlayerPrefs.SetInt("BackgroundResolution", resolution);
+        PlayerPrefs.Save();
+    }
+
+    private void LoadPrefs()
+    {
+        if (PlayerPrefs.HasKey("BackgroundResolution"))
+        {
+            resolution = PlayerPrefs.GetInt("BackgroundResolution");
+        }
+    }
     
+    private void ResetPrefs()
+    {
+        PlayerPrefs.SetInt("BackgroundResolution", 256);
+        resolution = 256;
+    }
 }
 
 

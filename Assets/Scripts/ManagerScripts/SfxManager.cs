@@ -1,6 +1,7 @@
 using System;
 using ScriptableObjects;
 using UnityEngine;
+using UnityEngine.PlayerLoop;
 
 namespace ManagerScripts
 {
@@ -15,10 +16,12 @@ namespace ManagerScripts
         [Header("Scriptable Objects")]
         [SerializeField] private SfxVolumeManagerScriptableObject sfxVolumeManagerScriptableObject;
         [SerializeField] private OnPlayerDeadScriptableObject onPlayerDeadScriptableObject;
+        [SerializeField] private OnPreferencesResetScriptableObject onPreferencesResetScriptableObject;
         
         private void Awake()
         {
             _audioSource = this.gameObject.GetComponent<AudioSource>();
+            LoadPrefs();
             SetVolume();
         }
 
@@ -26,17 +29,20 @@ namespace ManagerScripts
         {
             sfxVolumeManagerScriptableObject.sfxVolumeChangeEvent.AddListener(UpdateVolume);
             onPlayerDeadScriptableObject.onPlayerDeadEvent.AddListener(HitPlayer);
+            onPreferencesResetScriptableObject.onPreferencesResetEvent.AddListener(ResetPrefs);
         }
 
         private void OnDisable()
         {
             sfxVolumeManagerScriptableObject.sfxVolumeChangeEvent.RemoveListener(UpdateVolume);
             onPlayerDeadScriptableObject.onPlayerDeadEvent.RemoveListener(HitPlayer);
+            onPreferencesResetScriptableObject.onPreferencesResetEvent.RemoveListener(ResetPrefs);
         }
 
         private void UpdateVolume(float newVolume)
         {
             volume = newVolume; 
+            SavePrefs();
             SetVolume();
         }
 
@@ -51,6 +57,26 @@ namespace ManagerScripts
 
         private void HitPlayer() {
             _audioSource.PlayOneShot(bulletHitSound);
+        }
+        
+        private void SavePrefs()
+        {
+            PlayerPrefs.SetFloat("SfxVolume", volume);
+            PlayerPrefs.Save();
+        }
+
+        private void LoadPrefs()
+        {
+            if (PlayerPrefs.HasKey("SfxVolume"))
+            {
+                volume = PlayerPrefs.GetFloat("SfxVolume");
+            }        
+        }
+        
+        private void ResetPrefs()
+        {
+            PlayerPrefs.SetFloat("SfxVolume", 40);
+            UpdateVolume(40);
         }
     }
 }

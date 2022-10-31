@@ -39,6 +39,7 @@ public class PlayerController : MonoBehaviour
     public float forcefieldBulletHitCounterDecrease;
 
     [SerializeField] private OnBulletHitScriptableObject onBulletHitScriptableObject;
+    [SerializeField] private OnLaserHitScriptableObject onLaserHitScriptableObject;
     [SerializeField] private OnPlayerDeadScriptableObject onPlayerDeadScriptableObject;
     
 
@@ -52,11 +53,13 @@ public class PlayerController : MonoBehaviour
     private void OnEnable()
     {
         onBulletHitScriptableObject.onBulletHitEvent.AddListener(HitBullet);
+        onLaserHitScriptableObject.onLaserHitEvent.AddListener(HitBullet);
     }
 
     private void OnDisable()
     {
         onBulletHitScriptableObject.onBulletHitEvent.RemoveListener(HitBullet);
+        onLaserHitScriptableObject.onLaserHitEvent.RemoveListener(HitBullet);
     }
     
     private void Start()

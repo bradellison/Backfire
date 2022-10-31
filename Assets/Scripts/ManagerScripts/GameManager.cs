@@ -106,11 +106,5 @@ namespace ManagerScripts
             isGameOver = false;
             canvasManager.GameEndToggle();
         }
-
-        public void ToggleDebugLogging() {
-            GameLog.LogMessage("Debug logging set to " + !Debug.unityLogger.logEnabled);
-            Debug.unityLogger.logEnabled = !Debug.unityLogger.logEnabled;
-            GameLog.LogMessage("Debug logging set to " + Debug.unityLogger.logEnabled);
-        }
     }
 }

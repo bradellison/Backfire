@@ -21,10 +21,7 @@ public class TouchInput : MonoBehaviour
     private void CatchSwipe(Touch touch)
     {
         Vector2 delta = touch.deltaPosition;
-        if (delta == Vector2.zero)
-        {
-            return;
-        }
+        if (delta == Vector2.zero || !_playerController) { return; }
 
         //Log previous successful swipe for comparison later
         previousSwipe = currentSwipe;
@@ -42,8 +39,7 @@ public class TouchInput : MonoBehaviour
             } 
         } 
         
-        if(currentSwipe == previousSwipe || !_playerController) {
-            //Debug.Log("Swipe direction: " + currentSwipe);
+        if(currentSwipe != previousSwipe) {
             _playerController.swipeVector = currentSwipe;
         }
     }

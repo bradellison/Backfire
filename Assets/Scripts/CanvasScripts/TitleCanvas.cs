@@ -21,7 +21,7 @@ namespace CanvasScripts
 
         private GameManager _gameManager;
 
-        private void Start()
+        private void Awake()
         {
             _gameManager = GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>(); 
 
@@ -29,11 +29,20 @@ namespace CanvasScripts
             levelDecreaseButton.onClick.AddListener(DecreaseLevel);
             startGameButton.onClick.AddListener(StartGame);
             settingsMenuButton.onClick.AddListener(ToggleSettingsMenu);
-
-            UpdateTextFields();
-            CheckLevelUnlockText();
         }
 
+        private void Start()
+        {
+            //UpdateTextFields();
+            //CheckLevelUnlockText(); 
+        }
+        
+        private void OnEnable()
+        {
+            UpdateTextFields();
+            CheckLevelUnlockText();            
+        }
+        
         public void UpdateTextFields() {
             scoreText.text = ($"Score: {_gameManager.scoreManager.currentScore.ToString()}");
             highScoreText.text = ($"High Score: {_gameManager.scoreManager.highScores[_gameManager.levelManager.level - 1].ToString()}");
