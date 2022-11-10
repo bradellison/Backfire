@@ -14,20 +14,30 @@ namespace ManagerScripts
         public GameObject worldPrefab;
         public GameObject bulletPrefab;
         public GameObject laserEmitterPrefab;
+        public GameObject spinnerPrefab;
 
         public GameObject playerParent;
         public GameObject worldParent;
         public GameObject bulletParent;
         public GameObject laserEmitterParent;
+        public GameObject spinnerParent;
 
+        private PlayerController _playerController;
         private GameManager _gameManager;
 
         [SerializeField] private OnGameStartScriptableObject onGameStartScriptableObject;
+        [SerializeField] private OnWorldHitScriptableObject onWorldHitScriptableObject;
 
         private void OnEnable()
         {
             onGameStartScriptableObject.onGameStartEvent.AddListener(GameStart);
+            onWorldHitScriptableObject.onWorldHitEvent.AddListener(WorldHit);
         }
+
+        private void OnDisable()
+        {
+            onGameStartScriptableObject.onGameStartEvent.RemoveListener(GameStart);
+            onWorldHitScriptableObject.onWorldHitEvent.RemoveListener(WorldHit);        }
 
         private void Start()
         {
@@ -44,22 +54,72 @@ namespace ManagerScripts
             SpawnLaserEmitters();
         }
 
-        private PlayerController SpawnPlayer() {
+        private void SpawnPlayer() {
             GameObject playerGo = Instantiate(playerPrefab, playerParent.transform, true);
             playerGo.transform.position = Vector3.zero;
-            return playerGo.GetComponent<PlayerController>();
+            _playerController = playerGo.GetComponent<PlayerController>();
         }
 
-        public void SpawnWorld() {
+        private void WorldHit()
+        {
+            SpawnWorld();
+            Vector3 spawnVector = _playerController.transform.position;
+            Vector3 movementVector = _playerController.movementVector;
+            //SpawnBullet(spawnVector, movementVector);
+
+            switch (_gameManager.levelManager.level)
+            {
+                case 1:
+                    SpawnBullet(spawnVector, movementVector);
+                    break;
+                case 2:
+                    SpawnBullet(spawnVector, movementVector);
+                    if (Random.Range(0f, 1f) > 0.5f)
+                    {
+                        SpawnSpinner(spawnVector, movementVector);
+                    }
+
+                    break;
+                case 3:
+                    SpawnBullet(spawnVector, movementVector);
+                    if (Random.Range(0f, 1f) > 0.0f)
+                    {
+                        SpawnSpinner(spawnVector, movementVector);
+                    }
+
+                    break;
+                case 4:
+                    SpawnBullet(spawnVector, movementVector);
+                    break;
+                case 5:
+                    SpawnBullet(spawnVector, movementVector);
+                    if (Random.Range(0f, 1f) > 0.5f)
+                    {
+                        SpawnSpinner(spawnVector, movementVector);
+                    }
+
+                    break;
+                default:
+                    SpawnBullet(spawnVector, movementVector);
+                    break;
+            }
+        }
+
+
+        private void SpawnWorld() {
             GameObject worldGo = Instantiate(worldPrefab, worldParent.transform, true);
             worldGo.transform.position = RandomOnScreenVector(true);
         }
 
         private void SpawnLaserEmitters()
         {
-            for (int i = 0; i < _gameManager.levelManager.level - 1; i++)
+            //for (int i = 0; i < _gameManager.levelManager.level - 1; i++)
+            //{
+            //    SpawnLaserEmitter(i);
+            //}
+            if (_gameManager.levelManager.level >= 4)
             {
-                SpawnLaserEmitter(i);
+                SpawnLaserEmitter(Random.Range(1,4));
             }
         }
         
@@ -71,7 +131,17 @@ namespace ManagerScripts
             laserEmitter.SetStartLocation(cornerSpawnIndex);
             laserEmitter.movementVector = Vector3.up;
         }
-        
+
+        public void SpawnSpinner(Vector3 spawnVector, Vector3 movementVector)
+        {
+            GameObject spinnerGo = Instantiate(spinnerPrefab, spinnerParent.transform, true);
+            spinnerGo.transform.position = spawnVector;
+            Spinner spinner = spinnerGo.GetComponent<Spinner>();
+            spinner.movementVector = -movementVector;
+            spinner.camWorldSize = _camWorldSize;
+            spinner.moveSpeed *= 1 + ((_gameManager.levelManager.level - 1) * 0.2f);
+        }
+
         public void SpawnBullet(Vector3 spawnVector, Vector3 movementVector) {
             GameObject bulletGo = Instantiate(bulletPrefab, bulletParent.transform, true);
             bulletGo.transform.position = spawnVector;
@@ -96,6 +166,9 @@ namespace ManagerScripts
             }
             foreach(Transform laserEmitter in laserEmitterParent.transform) {
                 Destroy(laserEmitter.gameObject);
+            }
+            foreach(Transform spinner in spinnerParent.transform) {
+                Destroy(spinner.gameObject);
             }
         }
 

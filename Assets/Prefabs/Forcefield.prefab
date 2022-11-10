@@ -137,7 +137,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c5368626722e5432390688c7b7404028, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  forcefieldBulletHitCounterDecrease: 0
+  forcefieldBulletHitCounterDecrease: 0.5
+  forcefieldSpinnerHitCounterDecrease: 1
+  onWorldHitScriptableObject: {fileID: 11400000, guid: dcfdc8de9afef4db18dc48bbc5d67976, type: 2}
 --- !u!1 &2538202650951139569
 GameObject:
   m_ObjectHideFlags: 0

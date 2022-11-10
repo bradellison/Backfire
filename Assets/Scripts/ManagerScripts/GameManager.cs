@@ -41,8 +41,7 @@ namespace ManagerScripts
         {
             Camera mainCamera = Camera.main;
             if (!mainCamera) {Debug.Log("No camera found", this); return;}
-            camWorldSize.y = mainCamera.orthographicSize;
-            camWorldSize.x = camWorldSize.y * mainCamera.aspect;
+            camWorldSize = Utilities.GetCamWorldSize();
         }
         private void Start()
         {
@@ -52,7 +51,7 @@ namespace ManagerScripts
         // Update is called once per frame
         private void Update()
         {
-            if(!isGameRunning) {
+            if(!isGameRunning && !settingsManager.isMenuOpen) {
                 if(Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.Space)) {
                     TryToStartGame();
                 } else if (Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.A)) {

@@ -40,6 +40,9 @@ public class LaserEmitter : MonoBehaviour
     private void Start()
     {
         _spriteSize = this.gameObject.GetComponent<SpriteRenderer>().bounds.size;
+        
+        int enemyLayer = LayerMask.GetMask("Enemies");
+        Physics2D.IgnoreLayerCollision(enemyLayer, enemyLayer);
     }
 
     public void SetStartLocation(int cornerSpawnIndex)
@@ -47,7 +50,8 @@ public class LaserEmitter : MonoBehaviour
         camWorldSize = GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().camWorldSize;
         GenerateScreenCornerPoints();
         _transform.position = _screenCornerPoints[cornerSpawnIndex];
-        _targetMoveVector = _screenCornerPoints[cornerSpawnIndex + 1];
+        int targetSpawnIndex = (System.Array.IndexOf(_screenCornerPoints, _transform.position) + 1) % 4;
+        _targetMoveVector = _screenCornerPoints[targetSpawnIndex];
     }
 
     private void GenerateScreenCornerPoints()
@@ -74,7 +78,7 @@ public class LaserEmitter : MonoBehaviour
         
         Debug.DrawRay(position, direction * _laserMaxDistance);
         laserTargetVector = position + direction * _laserMaxDistance;
-        
+
         int enemyLayer = LayerMask.GetMask("Enemies");
         RaycastHit2D hit = Physics2D.Raycast(position, direction, _laserMaxDistance, ~enemyLayer);
         _lineRenderer.SetPosition(0, position);

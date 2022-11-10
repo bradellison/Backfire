@@ -18,6 +18,7 @@ namespace CanvasScripts
         public TMP_Text scoreText;
         public TMP_Text highScoreText;
         public TMP_Text levelSelectText;
+        public TMP_Text totalPointsText;
 
         private GameManager _gameManager;
 
@@ -31,12 +32,6 @@ namespace CanvasScripts
             settingsMenuButton.onClick.AddListener(ToggleSettingsMenu);
         }
 
-        private void Start()
-        {
-            //UpdateTextFields();
-            //CheckLevelUnlockText(); 
-        }
-        
         private void OnEnable()
         {
             UpdateTextFields();
@@ -47,6 +42,7 @@ namespace CanvasScripts
             scoreText.text = ($"Score: {_gameManager.scoreManager.currentScore.ToString()}");
             highScoreText.text = ($"High Score: {_gameManager.scoreManager.highScores[_gameManager.levelManager.level - 1].ToString()}");
             levelSelectText.text = ($"Level: {_gameManager.levelManager.level.ToString()}");
+            totalPointsText.text = ($"${_gameManager.scoreManager.totalPoints.ToString()}");
         }
 
 

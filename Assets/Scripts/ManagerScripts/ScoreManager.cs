@@ -1,23 +1,24 @@
 using CanvasScripts;
 using ScriptableObjects;
 using UnityEngine;
+using UnityEngine.PlayerLoop;
 
 namespace ManagerScripts
 {
     public class ScoreManager : MonoBehaviour
     {
-    
+
+        [SerializeField] public int totalPoints;
         public int currentScore;
-        [SerializeField]
-        public int[] lastScores = new int[5];
+        [SerializeField] public int[] lastScores = new int[5];
         public int highScore;
-        [SerializeField]
-        public int[] highScores = new int[5];
+        [SerializeField] public int[] highScores = new int[5];
 
         private GameManager _gameManager;
         private GameplayCanvas _gameplayCanvas;
         
         [Header("Scriptable Objects")]
+        [SerializeField] private OnWorldHitScriptableObject onWorldHitScriptableObject;
         [SerializeField] private OnPlayerDeadScriptableObject onPlayerDeadScriptableObject;
         [SerializeField] private OnGameStartScriptableObject onGameStartScriptableObject;
         [SerializeField] private OnPreferencesResetScriptableObject onPreferencesResetScriptableObject;
@@ -29,6 +30,7 @@ namespace ManagerScripts
         
         private void OnEnable()
         {
+            onWorldHitScriptableObject.onWorldHitEvent.AddListener(HitWorld);
             onPlayerDeadScriptableObject.onPlayerDeadEvent.AddListener(GameEnd);
             onGameStartScriptableObject.onGameStartEvent.AddListener(GameStart);
             onPreferencesResetScriptableObject.onPreferencesResetEvent.AddListener(ResetPrefs);
@@ -36,6 +38,7 @@ namespace ManagerScripts
 
         private void OnDisable()
         {
+            onWorldHitScriptableObject.onWorldHitEvent.RemoveListener(HitWorld);
             onPlayerDeadScriptableObject.onPlayerDeadEvent.RemoveListener(GameEnd);
             onGameStartScriptableObject.onGameStartEvent.RemoveListener(GameStart);
             onPreferencesResetScriptableObject.onPreferencesResetEvent.RemoveListener(ResetPrefs);
@@ -53,16 +56,24 @@ namespace ManagerScripts
             _gameplayCanvas.UpdateScore(currentScore);
         }
 
-        public void GameEnd() {
-            if(currentScore > highScores[_gameManager.levelManager.level - 1])
+        private void GameEnd()
+        {
+            int level = _gameManager.levelManager.level;
+            if(currentScore > highScores[level - 1])
             {
-                highScores[_gameManager.levelManager.level - 1] = currentScore;
+                highScores[level - 1] = currentScore;
             }
-            lastScores[_gameManager.levelManager.level - 1] = currentScore;
+            lastScores[level - 1] = currentScore;
+            UpdateTotalPoints(level);
             SavePrefs();
         }
 
-        public void HitWorld() {
+        private void UpdateTotalPoints(int level)
+        {
+            totalPoints += currentScore * level;
+        }
+
+        private void HitWorld() {
             currentScore += 10;
             _gameplayCanvas.UpdateScore(currentScore);
         }
@@ -74,6 +85,7 @@ namespace ManagerScripts
             PlayerPrefs.SetInt("HighScore3", highScores[2]);
             PlayerPrefs.SetInt("HighScore4", highScores[3]);
             PlayerPrefs.SetInt("HighScore5", highScores[4]);
+            PlayerPrefs.SetInt("TotalPoints", totalPoints);
             PlayerPrefs.Save();
         }
 
@@ -84,7 +96,8 @@ namespace ManagerScripts
             highScores[1] = PlayerPrefs.GetInt("HighScore2");
             highScores[2] = PlayerPrefs.GetInt("HighScore3");
             highScores[3] = PlayerPrefs.GetInt("HighScore4");
-            highScores[4] = PlayerPrefs.GetInt("HighScore5");            
+            highScores[4] = PlayerPrefs.GetInt("HighScore5");
+            totalPoints = PlayerPrefs.GetInt("TotalPoints");
         }
 
         private void ResetPrefs()
@@ -93,6 +106,8 @@ namespace ManagerScripts
             {
                 highScores[i] = 0;
             }
+
+            totalPoints = 0;
             SavePrefs();
         }
     }

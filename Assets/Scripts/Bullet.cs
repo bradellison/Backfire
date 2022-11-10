@@ -51,6 +51,9 @@ public class Bullet : MonoBehaviour
 
         //Enable collisions after 0.1 seconds to avoid instant death
         Invoke(nameof(EnableCollisions), 0.5f);
+        
+        int enemyLayer = LayerMask.GetMask("Enemies");
+        Physics2D.IgnoreLayerCollision(enemyLayer, enemyLayer);
 
         _trailRenderer = this.gameObject.transform.GetChild(0).GetComponent<TrailRenderer>();
         _hitEdge = false;
@@ -75,9 +78,7 @@ public class Bullet : MonoBehaviour
         }
 
         Vector3 position = _transform.position;
-        Vector3 changeVector = _previousLocation - position;
         float distance = Vector3.Distance(_previousLocation, position);
-        //float distance = Mathf.Abs(changeVector.x) + Mathf.Abs(changeVector.y) + Mathf.Abs(changeVector.z);
 
         Debug.DrawRay(position, -movementVector * distance);
         
@@ -128,8 +129,6 @@ public class Bullet : MonoBehaviour
         _previousLocation = _transform.position;
         transform.Translate(movementVector * (moveSpeed * Time.deltaTime));
     }
-
-    
     
     private void CheckScreenEdgesWithSingle() {
         float halfX = _spriteSize.x / 2;

@@ -13,7 +13,7 @@ public class PlayerController : MonoBehaviour
     public Vector3 swipeVector;    
     public float speedBoostMultiplier;
     private bool _isSpeedBoostActive;
-
+    
     private Vector2 _camWorldSize;
 
     private GameManager _gameManager;
@@ -36,12 +36,10 @@ public class PlayerController : MonoBehaviour
     public float forcefieldFalloff;
     public float forcefieldActiveFalloffMultiplier;
 
-    public float forcefieldBulletHitCounterDecrease;
-
     [SerializeField] private OnBulletHitScriptableObject onBulletHitScriptableObject;
     [SerializeField] private OnLaserHitScriptableObject onLaserHitScriptableObject;
+    [SerializeField] private OnWorldHitScriptableObject onWorldHitScriptableObject;
     [SerializeField] private OnPlayerDeadScriptableObject onPlayerDeadScriptableObject;
-    
 
     private void Awake()
     {
@@ -54,12 +52,14 @@ public class PlayerController : MonoBehaviour
     {
         onBulletHitScriptableObject.onBulletHitEvent.AddListener(HitBullet);
         onLaserHitScriptableObject.onLaserHitEvent.AddListener(HitBullet);
+        onWorldHitScriptableObject.onWorldHitEvent.AddListener(HitWorld);
     }
 
     private void OnDisable()
     {
         onBulletHitScriptableObject.onBulletHitEvent.RemoveListener(HitBullet);
         onLaserHitScriptableObject.onLaserHitEvent.RemoveListener(HitBullet);
+        onWorldHitScriptableObject.onWorldHitEvent.RemoveListener(HitWorld);
     }
     
     private void Start()
@@ -142,7 +142,6 @@ public class PlayerController : MonoBehaviour
     private void CreateForceField() {
         _forcefield = Instantiate(forcefieldPrefab, transform, true);
         _forcefield.transform.position = _transform.position;
-        _forcefield.GetComponent<Forcefield>().forcefieldBulletHitCounterDecrease = forcefieldBulletHitCounterDecrease;
         _gameManager.canvasManager.gameplayCanvas.GetComponent<GameplayCanvas>().forcefieldBar.UpdateColor();
     }
 
@@ -180,8 +179,8 @@ public class PlayerController : MonoBehaviour
     
     private void OnCollisionEnter2D(Collision2D other) {
         if(other.gameObject.CompareTag("World")) {
-            HitWorld(other.gameObject, false);
-        } else if (other.gameObject.CompareTag("Bullet")) {
+            CheckHitWorld(other.gameObject);
+        } else if (other.gameObject.CompareTag("Bullet") || other.gameObject.CompareTag("Spinner")) {
             HitBullet();
         }
     }
@@ -196,21 +195,20 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    public void HitWorld(GameObject world, bool hitByForcefield) {
-        _gameManager.scoreManager.HitWorld();
-        _gameManager.spawnManager.SpawnBullet(transform.position, movementVector);
-        
-        //Below is to stop multiple worlds spawning if forcefield and player collide with world
-        if(!isForcefieldActive || (isForcefieldActive && hitByForcefield)) {
-            _gameManager.spawnManager.SpawnWorld();
+    private void CheckHitWorld(GameObject world) {
+        // Return out immediately if forcefield is active, as it will trigger on that script instead
+        if (isForcefieldActive)
+        {
+            return;
         }
-        
-        if(!isForcefieldActive) {
-            IncrementForceFieldCounter();
-        }
-        
-        _gameManager.sfxManager.HitWorld();
+        Debug.Log("hit world with player");
+        onWorldHitScriptableObject.onWorldHitEvent.Invoke();
         Destroy(world);
+    }
+
+    private void HitWorld()
+    {
+        IncrementForceFieldCounter();
     }
 
     private void OnDrawGizmosSelected()

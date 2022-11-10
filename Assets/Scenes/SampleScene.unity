@@ -156,6 +156,7 @@ Transform:
   - {fileID: 1316370763}
   - {fileID: 1473597298}
   - {fileID: 800928986}
+  - {fileID: 760054720}
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -721,6 +722,38 @@ MonoBehaviour:
   sfxVolumeManagerScriptableObject: {fileID: 11400000, guid: 01447f208af4a4d83b619b9fe96e04f1, type: 2}
   onPlayerDeadScriptableObject: {fileID: 11400000, guid: fddf14ba57de74d5289f9246f3826084, type: 2}
   onPreferencesResetScriptableObject: {fileID: 11400000, guid: 5f9c47fdaa19d4f659dd2abc242cac23, type: 2}
+  onWorldHitScriptableObject: {fileID: 11400000, guid: dcfdc8de9afef4db18dc48bbc5d67976, type: 2}
+--- !u!1 &760054719
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 760054720}
+  m_Layer: 0
+  m_Name: Spinners
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &760054720
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 760054719}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 215079721}
+  m_RootOrder: 5
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &785915171
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -906,10 +939,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 30f5434d5a7664477b32470921bf7843, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  totalPoints: 0
   currentScore: 0
   lastScores: 0000000000000000000000000000000000000000
   highScore: 0
   highScores: 0000000000000000000000000000000000000000
+  onWorldHitScriptableObject: {fileID: 11400000, guid: dcfdc8de9afef4db18dc48bbc5d67976, type: 2}
   onPlayerDeadScriptableObject: {fileID: 11400000, guid: fddf14ba57de74d5289f9246f3826084, type: 2}
   onGameStartScriptableObject: {fileID: 11400000, guid: 1b16f8f2258994ee8b3d7b0662291d02, type: 2}
   onPreferencesResetScriptableObject: {fileID: 11400000, guid: 5f9c47fdaa19d4f659dd2abc242cac23, type: 2}
@@ -1194,11 +1229,14 @@ MonoBehaviour:
   worldPrefab: {fileID: 2505116853767531537, guid: 8c9da31af03164f019ab4a9a1fc26d5d, type: 3}
   bulletPrefab: {fileID: 6921743769335494578, guid: 78f6f64fd3a4344ed88dd95d20cadf9b, type: 3}
   laserEmitterPrefab: {fileID: 3765674841293495718, guid: ea98ea76832f04221a686482b219f90b, type: 3}
+  spinnerPrefab: {fileID: 3765674841293495718, guid: 59c23875984324afb8817e1cdd9301cd, type: 3}
   playerParent: {fileID: 1240786249}
   worldParent: {fileID: 1316370762}
   bulletParent: {fileID: 1473597297}
   laserEmitterParent: {fileID: 800928985}
+  spinnerParent: {fileID: 760054719}
   onGameStartScriptableObject: {fileID: 11400000, guid: 1b16f8f2258994ee8b3d7b0662291d02, type: 2}
+  onWorldHitScriptableObject: {fileID: 11400000, guid: dcfdc8de9afef4db18dc48bbc5d67976, type: 2}
 --- !u!4 &1087885387
 Transform:
   m_ObjectHideFlags: 0
@@ -1544,9 +1582,11 @@ MonoBehaviour:
   lacunarity: 2.87
   offset: {x: 86.9, y: 1.92}
   offsetAutomaticIncrement: {x: 0, y: 0}
+  updateNoiseFreqInSeconds: 0
   maxOffsetAutomaticIncrement: {x: 0, y: 0}
   targetOffsetAutomaticIncrement: {x: 0, y: 0}
   shouldUpdateOffset: 0
+  updateTargetOffsetFreqInSeconds: 0.5
   autoUpdate: 1
   coloring:
     serializedVersion: 2
@@ -1925,6 +1965,10 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 9021637905635259374, guid: 07437612e8b354fd080d7f52b2b10ed9, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 07437612e8b354fd080d7f52b2b10ed9, type: 3}
 --- !u!224 &1618370916 stripped
@@ -2154,7 +2198,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   particle: {fileID: 5181746770209003263, guid: 5eb98930519ef44ff9c486dad9244429, type: 3}
-  swipeDistanceThreshold: 0
+  swipeDistanceThreshold: 20
   currentSwipe: {x: 0, y: 0, z: 0}
   previousSwipe: {x: 0, y: 0, z: 0}
   onGameStartScriptableObject: {fileID: 11400000, guid: 1b16f8f2258994ee8b3d7b0662291d02, type: 2}

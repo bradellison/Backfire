@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using ManagerScripts;
 using ScriptableObjects;
-using TMPro.EditorUtilities;
 using UnityEngine;
 using UnityEngine.Video;
 
@@ -50,15 +49,15 @@ public class OuterSpace : MonoBehaviour
 
     private IEnumerator ChangeVideo(VideoClip newClip)
     {
+        double previousTime = _videoPlayer.time;
         _videoPlayer.Pause();
         _videoPlayer.clip = newClip;
-        //_videoPlayer.Pause();
-        _videoPlayer.Prepare(); 
+        _videoPlayer.Prepare();
         while (!_videoPlayer.isPrepared) 
             yield return new WaitForEndOfFrame(); 
-        _videoPlayer.frame = 0; //just incase it's not at the first frame
+
+        _videoPlayer.time = previousTime; //Start new clip at same time as previous clip, so it flows smoothly
         _videoPlayer.Play();
-        //now display your render texture
     }
     
     private void Awake()
@@ -88,21 +87,6 @@ public class OuterSpace : MonoBehaviour
         }
     }
 
-    private void CreateTextureForRender() {
-        //Debug.Log("Draw texture2D and colour map with width " + resolution + " and height " + resolution); 
-
-        int width = Convert.ToInt32(levelVideos[0].width);
-        int height = Convert.ToInt32(levelVideos[0].height);
-        //Debug.Log(width);
-        //Debug.Log(height);
-        //int width = 1920;
-        //int height = 1080;
-
-        textureForRender = new RenderTexture(256, 256, 16, RenderTextureFormat.ARGB32);;
-        textureForRender.Create();
-        //(256, 256, 16, RenderTextureFormat.ARGB32);
-    }
-    
     private void Start()
     {
         //noiseScales = new float[0.1f, 30.0f, 1.0f, 1.0f, 1.0f];
@@ -135,9 +119,6 @@ public class OuterSpace : MonoBehaviour
         if (isUsingVideoPlayer)
         {
             StartCoroutine(ChangeVideo(levelVideos[level - 1]));
-            //double previousTime = _videoPlayer.time;
-            //_videoPlayer.clip = levelVideos[level - 1];
-            //_videoPlayer.time = previousTime;
             return;
         }
         

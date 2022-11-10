@@ -17,6 +17,8 @@ namespace ManagerScripts
         [SerializeField] private SfxVolumeManagerScriptableObject sfxVolumeManagerScriptableObject;
         [SerializeField] private OnPlayerDeadScriptableObject onPlayerDeadScriptableObject;
         [SerializeField] private OnPreferencesResetScriptableObject onPreferencesResetScriptableObject;
+        [SerializeField] private OnWorldHitScriptableObject onWorldHitScriptableObject;
+        
         
         private void Awake()
         {
@@ -30,6 +32,7 @@ namespace ManagerScripts
             sfxVolumeManagerScriptableObject.sfxVolumeChangeEvent.AddListener(UpdateVolume);
             onPlayerDeadScriptableObject.onPlayerDeadEvent.AddListener(HitPlayer);
             onPreferencesResetScriptableObject.onPreferencesResetEvent.AddListener(ResetPrefs);
+            onWorldHitScriptableObject.onWorldHitEvent.AddListener(HitWorld);
         }
 
         private void OnDisable()
@@ -37,6 +40,8 @@ namespace ManagerScripts
             sfxVolumeManagerScriptableObject.sfxVolumeChangeEvent.RemoveListener(UpdateVolume);
             onPlayerDeadScriptableObject.onPlayerDeadEvent.RemoveListener(HitPlayer);
             onPreferencesResetScriptableObject.onPreferencesResetEvent.RemoveListener(ResetPrefs);
+            onWorldHitScriptableObject.onWorldHitEvent.RemoveListener(HitWorld);
+
         }
 
         private void UpdateVolume(float newVolume)

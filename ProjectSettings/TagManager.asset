@@ -16,6 +16,8 @@ TagManager:
   - SettingsManager
   - MusicManager
   - SfxManager
+  - Spinner
+  - Joystick
   layers:
   - Default
   - TransparentFX

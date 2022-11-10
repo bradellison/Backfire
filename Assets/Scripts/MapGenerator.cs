@@ -24,9 +24,14 @@ public class MapGenerator : MonoBehaviour
 
     public Vector2 offset;
     public Vector2 offsetAutomaticIncrement;
+    public float updateNoiseFreqInSeconds;
+    private float _elapsedTimeNoiseUpdate;
     public Vector2 maxOffsetAutomaticIncrement;
     public Vector2 targetOffsetAutomaticIncrement;
+    
     public bool shouldUpdateOffset;
+    private float _elapsedTimeTargetOffset;
+    public float updateTargetOffsetFreqInSeconds = 0.5f;
     private bool _isUpdatingOffset;
 
     public bool autoUpdate;
@@ -37,7 +42,6 @@ public class MapGenerator : MonoBehaviour
 
     private Texture2D _texture;
     private Color[] _colourMap;
-    private float _elapsedTime;
 
     private float[,] _noiseMap;
 
@@ -110,18 +114,22 @@ public class MapGenerator : MonoBehaviour
         _isUpdatingOffset = false;
     }
 
-    private float _updateFreqInSeconds = 0.5f;
-    
     private void Update()
     {
-        _elapsedTime += Time.deltaTime;
-        if(shouldUpdateOffset && !_isUpdatingOffset && _elapsedTime > _updateFreqInSeconds) {
+        _elapsedTimeTargetOffset += Time.deltaTime;
+        if (shouldUpdateOffset && !_isUpdatingOffset && _elapsedTimeTargetOffset > updateTargetOffsetFreqInSeconds)
+        {
             UpdateIncrements();
-            _elapsedTime = 0;
-        } 
-        offset.x += offsetAutomaticIncrement.x;
-        offset.y += offsetAutomaticIncrement.y;
-        GenerateMap();
-    }
+            _elapsedTimeTargetOffset = 0;
+        }
 
+        _elapsedTimeNoiseUpdate += Time.deltaTime;
+        if (_elapsedTimeNoiseUpdate > updateNoiseFreqInSeconds)
+        {
+            offset.x += offsetAutomaticIncrement.x;
+            offset.y += offsetAutomaticIncrement.y;
+            GenerateMap();
+            _elapsedTimeNoiseUpdate = 0;
+        }
+    }
 }

@@ -17,14 +17,19 @@ public class TouchInput : MonoBehaviour
     {
         onGameStartScriptableObject.onGameStartEvent.AddListener(GameStart);
     }
-
+    
+    private void OnDisable()
+    {
+        onGameStartScriptableObject.onGameStartEvent.RemoveListener(GameStart);
+    }
+    
     private void CatchSwipe(Touch touch)
     {
         Vector2 delta = touch.deltaPosition;
         if (delta == Vector2.zero || !_playerController) { return; }
 
         //Log previous successful swipe for comparison later
-        previousSwipe = currentSwipe;
+        //previousSwipe = currentSwipe;
         if(Mathf.Abs(delta.x) > Mathf.Abs(delta.y)) {
             if(delta.x > swipeDistanceThreshold) {
                 currentSwipe = Vector3.right;
@@ -41,24 +46,27 @@ public class TouchInput : MonoBehaviour
         
         if(currentSwipe != previousSwipe) {
             _playerController.swipeVector = currentSwipe;
+            previousSwipe = currentSwipe;
         }
     }
 
-    //private void ParticleOnTouch(Touch touch) {
-    //    if (touch.phase == TouchPhase.Began) {
-    //        Ray ray = Camera.main.ScreenPointToRay(touch.position);
-    //        Vector3 worldPosition = Camera.main.ScreenToWorldPoint(touch.position);
-    //        if (Physics.Raycast(ray))
-    //        {
-    //            // Create a particle if hit
-    //            Instantiate(particle, worldPosition, transform.rotation);
-    //        }
-    //    }
-    //}
+    private void ParticleOnTouch(Touch touch) {
+        if (touch.phase == TouchPhase.Began) {
+            Ray ray = Camera.main.ScreenPointToRay(touch.position);
+            Vector3 worldPosition = Camera.main.ScreenToWorldPoint(touch.position);
+            if (Physics.Raycast(ray))
+            {
+                // Create a particle if hit
+                Instantiate(particle, worldPosition, transform.rotation);
+            }
+        }
+    }
 
     private void GameStart()
     {
         _playerController = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerController>();
+        currentSwipe = Vector3.zero;
+        previousSwipe = Vector3.zero;
     }
     private void Update()
     {

@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 7871152117370483367}
   - component: {fileID: 7871152117370483366}
   - component: {fileID: 7871152117370483365}
+  - component: {fileID: 5071912421511212659}
   - component: {fileID: 7871152117370483369}
   - component: {fileID: 6161211897105527866}
   m_Layer: 0
@@ -99,7 +100,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d7299e9f594b4e75a9ed4178fc3dce4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 12
+  moveSpeed: 10
   movementVector: {x: 0, y: 0, z: 0}
   swipeVector: {x: 0, y: 0, z: 0}
   speedBoostMultiplier: 2
@@ -113,10 +114,23 @@ MonoBehaviour:
   forcefieldTarget: 5
   forcefieldFalloff: 0.004
   forcefieldActiveFalloffMultiplier: 1.5
-  forcefieldBulletHitCounterDecrease: 0.5
   onBulletHitScriptableObject: {fileID: 11400000, guid: 19d0e02dee36e420885bd30136b2aa65, type: 2}
   onLaserHitScriptableObject: {fileID: 11400000, guid: 6bbcfe9a332964eaa8b6a4b6d20013e8, type: 2}
+  onWorldHitScriptableObject: {fileID: 11400000, guid: dcfdc8de9afef4db18dc48bbc5d67976, type: 2}
   onPlayerDeadScriptableObject: {fileID: 11400000, guid: fddf14ba57de74d5289f9246f3826084, type: 2}
+--- !u!114 &5071912421511212659
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7871152117370483368}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 91a9731c941294b59a9ac585b158f0db, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  onGameStartScriptableObject: {fileID: 0}
 --- !u!50 &7871152117370483369
 Rigidbody2D:
   serializedVersion: 4
