@@ -38,9 +38,9 @@ namespace ManagerScripts
         private void GameStartToggle() {
             titleCanvas.SetActive(false);
             gameplayCanvas.SetActive(true);
-        } 
+        }
 
-        public void GameOverToggle() {
+        private void GameOverToggle() {
             gameOverCanvas.SetActive(true);
         }
 

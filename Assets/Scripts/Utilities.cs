@@ -5,7 +5,6 @@ using UnityEngine;
 
 public class Utilities
 {
-    
     public static Vector2 GetCamWorldSize()
     {
         Camera mainCamera = Camera.main;
@@ -16,5 +15,4 @@ public class Utilities
         camWorldSize.x = camWorldSize.y * mainCamera.aspect;
         return camWorldSize;
     }
-
 }
